@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Institution {
+  id          String        @id @default(uuid())
+  name        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  courses     Course[]
+  departments Department[]
+  enokiAccts  EnokiAcct[]
+  callTeacher CallTeacher[]
+}
+
+model EnokiAcct {
+  id            String      @id @default(uuid())
+  name          String
+  email         String      @unique
+  password      String
+  actType       ACTType?
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?  @unique
+
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+  teacherId String?  @unique
+}
+
+model Department {
+  id            String       @id @default(uuid())
+  name          String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  institutionId String?
+  institution   Institution? @relation(fields: [institutionId], references: [id])
+  teachers      Teacher[]
+}
+
+model Student {
+  id              String        @id @default(uuid())
+  studentId       String
+  studentRfidHash String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  lastCall        DateTime?
+  courseId        String?
+  studentCalls    CallTeacher[]
+  course          Course?       @relation(fields: [courseId], references: [id])
+
+  enokiAcct EnokiAcct?
+}
+
+model Teacher {
+  id                    String             @id @default(uuid())
+  employeeRfidHash      String
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  departmentId          String?
+  pushNotificationToken String?
+  schedule              Json
+  teacherCalls          CallTeacher[]
+  gateScans             GateScan[]
+  department            Department?        @relation(fields: [departmentId], references: [id])
+  statistics            TeacherStatistics?
+  enokiAcct             EnokiAcct?
+}
+
+model TeacherStatistics {
+  id        String   @id @default(uuid())
+  status    TStatus  @default(OUT)
+  cmb       Int?
+  teacherId String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+}
+
+model GateScan {
+  id        String    @id @default(uuid())
+  in        DateTime?
+  out       DateTime?
+  teacherId String    @unique
+  createdAt DateTime  @default(now())
+  teacher   Teacher   @relation(fields: [teacherId], references: [id])
+}
+
+model CallTeacher {
+  id            String      @id @default(uuid())
+  studentId     String
+  calledAt      DateTime    @default(now())
+  teacherId     String
+  message       String      @default("")
+  isRead        Boolean     @default(false)
+  isDeleted     Boolean     @default(false)
+  student       Student     @relation(fields: [studentId], references: [id])
+  teacher       Teacher     @relation(fields: [teacherId], references: [id])
+  institutionId String
+  callType      CallType
+  institution   Institution @relation(fields: [institutionId], references: [id])
+}
+
+model Course {
+  id            String      @id @default(uuid())
+  name          String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  institutionId String
+  institution   Institution @relation(fields: [institutionId], references: [id])
+  students      Student[]
+}
+
+enum TStatus {
+  IN_BUSY
+  IN_BREAK
+  IN_CLASS
+  OUT
+  AVAILABLE
+}
+
+enum ACTType {
+  OWNER
+  ADMIN
+  TEACHER
+  STUDENT
+  KIOSK
+}
+
+enum CallType {
+  MESSAGE
+  NOTIFY
+}
