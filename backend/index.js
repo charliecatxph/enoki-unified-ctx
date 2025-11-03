@@ -6,12 +6,10 @@ import cookieParser from "cookie-parser";
 import master from "./routes/master.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
-import { initSocket } from "./lib/socket.js";
-import fs from "fs";
-import axios from "axios";
-import bcrypt from "bcrypt";
-import { randomUUID } from "crypto";
+import { emitToAll, emitToSocket, initSocket } from "./lib/socket.js";
+import cron from "node-cron";
 import { prisma } from "./lib/prisma.js";
+import moment from "moment";
 
 // const oldJSON = JSON.parse(
 //   fs.readFileSync("./kioskDB.faculties.json", "utf-8")
@@ -166,4 +164,93 @@ app.use((req, res, next) => {
 server.listen(process.env.PORT, () => {
   console.log("Socket.IO server running");
   console.log("App is listening at PORT", process.env.PORT);
+});
+
+cron.schedule("* * * * *", async () => {
+  // run every 5m
+  console.log("checking for teachers...");
+
+  const tstat = await prisma.teacherStatistics.findMany({
+    where: {
+      status: "IN_CLASS",
+    },
+    select: {
+      id: true,
+      status: true,
+      teacher: {
+        select: {
+          schedule: true,
+          enokiAcct: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  for (const stat of tstat) {
+    const { teacher } = stat;
+    const socketId = socketsConnected.get(stat.teacher.enokiAcct.id);
+
+    const __todayIdx = (moment().isoWeekday() - 1) % 7;
+    const currentSchedule = teacher.schedule[__todayIdx];
+
+    if (currentSchedule.dayOff) {
+      await prisma.teacherStatistics.update({
+        where: {
+          id: stat.id,
+        },
+        data: {
+          status: "OUT",
+        },
+      });
+
+      if (socketId) {
+        emitToSocket(socketId, "sig", { type: "STATUS-CHANGE-SCANNER" });
+      }
+      emitToAll("sig", { type: "STATUS-CHANGE", data: null });
+      return;
+    }
+
+    for (const classTime of currentSchedule.classTimes) {
+      if (
+        moment().isBetween(
+          moment().startOf("day").add(classTime.cS, "seconds"),
+          moment().startOf("day").add(classTime.cE, "seconds")
+        )
+      ) {
+        await prisma.teacherStatistics.update({
+          where: {
+            id: stat.id,
+          },
+          data: {
+            status: "IN_CLASS",
+          },
+        });
+
+        if (socketId) {
+          emitToSocket(socketId, "sig", { type: "STATUS-CHANGE-SCANNER" });
+        }
+        emitToAll("sig", { type: "STATUS-CHANGE", data: null });
+        return;
+      } else {
+        await prisma.teacherStatistics.update({
+          where: {
+            id: stat.id,
+          },
+          data: {
+            status: "OUT",
+          },
+        });
+
+        if (socketId) {
+          emitToSocket(socketId, "sig", { type: "STATUS-CHANGE-SCANNER" });
+        }
+        emitToAll("sig", { type: "STATUS-CHANGE", data: null });
+        return;
+      }
+    }
+  }
 });

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "851632194467",
+    "project_id": "e-noki-adfc3",
+    "storage_bucket": "e-noki-adfc3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851632194467:android:d85831525797b0e1eb1016",
+        "android_client_info": {
+          "package_name": "com.enokiappdevph.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4Xa2ar4GLG1SZI79JP-uhZV7rp4NmcrM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

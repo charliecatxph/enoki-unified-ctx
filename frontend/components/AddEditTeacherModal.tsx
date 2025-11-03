@@ -561,11 +561,12 @@ export default function AddEditTeacherModal({
           : daySchedule
       ),
     }));
+  };
 
-    // Validate schedule after update
+  useEffect(() => {
     const errors = validateSchedule(currentSchedule);
     setScheduleErrors(errors);
-  };
+  }, [currentSchedule]);
 
   const formatTime = (secondsFromStartOfDay: number): string => {
     // Convert seconds from start of day to hours and minutes
@@ -699,6 +700,7 @@ export default function AddEditTeacherModal({
 
       for (let i = 0; i < sortedSlots.length; i++) {
         const currentSlot = sortedSlots[i];
+        console.log(currentSchedule);
 
         // Check if start time is before end time
         if (currentSlot.startTime >= currentSlot.endTime) {
@@ -1189,25 +1191,15 @@ export default function AddEditTeacherModal({
                               <Coffee className="text-orange-600" size="16" />
                             )}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 flex-1">
-                              <input
-                                type="text"
-                                value={slot.label || ""}
-                                onChange={(e) =>
-                                  updateTimeSlot(selectedDay, slot.id, {
-                                    label: e.target.value,
-                                  })
-                                }
-                                placeholder={
-                                  slot.type === "class"
-                                    ? "Class name"
-                                    : "Break description"
-                                }
-                                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                              />
+                              <div className="px-3 py-2 border border-gray-300 rounded-md text-sm">
+                                {slot.type === "class"
+                                  ? "Class name"
+                                  : "Break description"}
+                              </div>
                               <input
                                 type="time"
                                 value={secondsToTimeString(slot.startTime)}
-                                onChange={(e) => {
+                                onInput={(e) => {
                                   const newStartTime = timeStringToSeconds(
                                     e.target.value
                                   );
@@ -1220,7 +1212,7 @@ export default function AddEditTeacherModal({
                               <input
                                 type="time"
                                 value={secondsToTimeString(slot.endTime)}
-                                onChange={(e) => {
+                                onInput={(e) => {
                                   const newEndTime = timeStringToSeconds(
                                     e.target.value
                                   );

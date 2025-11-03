@@ -18,11 +18,18 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       },
     });
 
-    socket.on("sig", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["messages"],
-        exact: false,
-      });
+    socket.on("sig", (dx) => {
+      if (dx.type === "STATUS-CHANGE-SCANNER") {
+        queryClient.invalidateQueries({
+          queryKey: ["user"],
+          exact: false,
+        });
+      } else if (dx.type === "MESSAGE-SENT") {
+        queryClient.invalidateQueries({
+          queryKey: ["messages"],
+          exact: false,
+        });
+      }
     });
 
     setSocket(socket);

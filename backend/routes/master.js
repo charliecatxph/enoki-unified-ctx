@@ -48,6 +48,8 @@ import appLogout from "./endpoints/appLogout.js";
 import getStudentCalls from "./endpoints/get-student-calls.js";
 import getStudentCallHistory from "./endpoints/get-student-call-history.js";
 import notifyTeacher from "./endpoints/notify-teacher.js";
+import inSens from "./endpoints/in-sens.js";
+import outSens from "./endpoints/out-sens.js";
 
 const router = express.Router();
 
@@ -137,5 +139,8 @@ router.get("/get-courses", getCourses);
 router.post("/get-student-calls", getStudentCalls);
 router.post("/get-student-call-history", getStudentCallHistory);
 router.post("/notify-teacher", notifyTeacher);
+
+router.post("/in-sens", inSens);
+router.post("/out-sens", outSens);
 
 export default router;
