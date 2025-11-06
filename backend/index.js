@@ -10,114 +10,57 @@ import { emitToAll, emitToSocket, initSocket } from "./lib/socket.js";
 import cron from "node-cron";
 import { prisma } from "./lib/prisma.js";
 import moment from "moment";
+import { SerialPort } from "serialport";
+import { ReadlineParser } from "@serialport/parser-readline";
 
-// const oldJSON = JSON.parse(
-//   fs.readFileSync("./kioskDB.faculties.json", "utf-8")
-// );
+const openPort = () => {
+  const port = new SerialPort({
+    path: process.env.RFID_PORT_PATH,
+    baudRate: 115200,
+    autoOpen: false, // we open manually to handle retry
+  });
 
-// function timeToUnixSeconds(timeStr) {
-//   const [hours, minutes] = timeStr.split(":").map(Number);
-//   return hours * 3600 + minutes * 60;
-// }
+  const tryOpen = () => {
+    port.open((err) => {
+      if (err) {
+        console.log("Cannot open RFID port :(");
+        console.log("[RFID Trace] - ", err.message);
+        console.log("Retrying in 2 seconds...");
+        setTimeout(tryOpen, 2000); // retry after 2s
+        return;
+      }
+      console.log("RFID port opened successfully!");
+    });
+  };
 
-// function nameToEmail(fullName, domain = "lucena.sti.edu.ph") {
-//   // Split by comma, fallback to empty string if missing
-//   const [last = "", first = ""] = fullName
-//     .split(",")
-//     .map((s) => s.trim().toLowerCase());
+  tryOpen();
 
-//   // Take only the first given name (if exists)
-//   const firstName = first ? first.split(" ")[0] : "user";
+  return port;
+};
 
-//   return `${last}.${firstName}@${domain}`;
-// }
+const port = openPort();
 
-// function getDeptTrsn(name) {
-//   switch (name) {
-//     case "Arts and Science Tertiary Dept": {
-//       return "06b221bd-910b-4931-8c62-bf8c2c0f6a0b";
-//     }
-//     case "Arts and Science SHS Dept": {
-//       return "06b221bd-910b-4931-8c62-bf8c2c0f6a0b";
-//     }
-//     case "BM Tertiary Dept": {
-//       return "00569daf-2067-4ac1-8e82-d88f763900b3";
-//     }
-//     case "BM SHS Dept": {
-//       return "00569daf-2067-4ac1-8e82-d88f763900b3";
-//     }
-//     case "GE Tertiary Dept": {
-//       return "803344c2-8dcc-4d4f-a709-83305e2817ca";
-//     }
-//     case "GE SHS Dept": {
-//       return "803344c2-8dcc-4d4f-a709-83305e2817ca";
-//     }
-//     case "ICT/ENGG Tertiary Dept": {
-//       return "d5af2912-6bf9-40c4-9dcf-b33df659e27b";
-//     }
-//     case "ICT/ENGG SHS Dept": {
-//       return "d5af2912-6bf9-40c4-9dcf-b33df659e27b";
-//     }
-//     case "THM Tertiary Dept": {
-//       return "7ebadcff-5558-4cda-a2ba-beb819c0ed67";
-//     }
-//     case "ABCOMM Dept": {
-//       return "4108122f-c793-4d81-a8e8-15ec3dccdd42";
-//     }
-//   }
-// }
+const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
 
-// const newJSON = oldJSON.map((faculty, i) => {
-//   const wksched = Object.entries(faculty.weeklySchedule).map(([day, value]) => {
-//     if (value.dayOff) return { dayOff: true };
-//     const dayx = value.classTimes.map((time) => {
-//       return {
-//         cS: timeToUnixSeconds(time.classStart),
-//         cE: timeToUnixSeconds(time.classEnd),
-//       };
-//     });
-//     const breakx = value.breakTimes.map((time) => {
-//       return {
-//         bS: timeToUnixSeconds(time.breakStart),
-//         bE: timeToUnixSeconds(time.breakEnd),
-//       };
-//     });
-//     return { dayOff: false, classTimes: dayx, breakTimes: breakx };
-//   });
+parser.on("data", (data) => {
+  let rfidBuf = data.split(" ");
+  rfidBuf = rfidBuf.map((el) => el.replace(/\r/, ""));
+  const tag = rfidBuf.shift();
+  const result = rfidBuf.join(" ");
 
-//   const td = {
-//     name: faculty.name,
-//     rfid: i + 1,
-//     departmentId: getDeptTrsn(faculty.department.trim()),
-//     weeklySchedule: wksched,
-//     email: nameToEmail(faculty.name.trim()),
-//   };
-//   return td;
-// });
+  if (tag === "[ENOKI-RFID-SIG]") {
+    console.log("Emission complete.", result);
+    emitToAll("sig", { type: "RFID-READ", data: result, dest: "KIOSK" });
+  }
+});
 
-// Promise.all(
-//   newJSON.map((d, i) => {
-//     return axios
-//       .post("http://localhost:10000/api/alpha/add-teacher", {
-//         name: d.name,
-//         email: d.email,
-//         employeeRfidHash: randomUUID(),
-//         schedule: d.weeklySchedule,
-//         institutionId: "898b4819-1877-41b4-aae4-d16f571ddb3b",
-//         departmentId: d.departmentId,
-//       })
-//       .then(() => {
-//         console.log("Imported: ", d.name);
-//       })
-//       .catch((e) => {
-//         console.log(e.message);
-//       });
-//   })
-// ).then((d) => {
-//   console.log("Import complete.");
-// });
+port.on("open", () => {
+  console.log("Connected to E-Noki RFID Onboard Reader");
+});
 
-// console.log("Used import.");
+port.on("error", (err) => {
+  console.log("Error connecting to E-Noki RFID Onboard Reader", err);
+});
 
 const app = express();
 const server = createServer(app);
