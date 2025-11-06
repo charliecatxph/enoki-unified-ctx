@@ -42,6 +42,7 @@ import { useRfidSocket } from "@/utils/useRfidSocket";
 import { useEnokiModals } from "@/contexts/EnokiModalContext";
 import { CircularProgress } from "@mui/material";
 import AddEditTeacherModal, { Teacher } from "@/components/AddEditTeacherModal";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -259,6 +260,10 @@ export default function Teachers({ user }: any) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - Teachers of {__userData.name}</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >

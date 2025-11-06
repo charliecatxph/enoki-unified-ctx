@@ -34,6 +34,7 @@ import { useEnokiMutator } from "@/hooks/useEnokiMutator";
 import TimeAgoComponent from "@/components/TimeAgo";
 import CircularProgress from "@mui/material/CircularProgress";
 import moment from "moment";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -215,6 +216,10 @@ export default function Students({ user }: any) {
   };
   return (
     <>
+      <Head>
+        <title>E-Noki - Students of {__userData.name}</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >

@@ -27,6 +27,7 @@ import { AnimatePresence } from "framer-motion";
 import { useEnokiMutator } from "@/hooks/useEnokiMutator";
 import { useRfidSocket } from "@/utils/useRfidSocket";
 import moment from "moment";
+import Head from "next/head";
 
 const getStatusBackground = (status: string) => {
   switch (status) {
@@ -313,6 +314,10 @@ export default function Kiosk({ user }: { user: any }) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - Kiosk</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${inter.className} bg-yellow-300 h-screen w-screen p-10 flex gap-5`}
       >

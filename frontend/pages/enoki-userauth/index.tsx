@@ -13,6 +13,7 @@ import axios from "axios";
 import moment from "moment";
 import EnokiUserAuthAcctRow from "@/components/EnokiUserAuthAcctRow";
 import { EnokiAcct } from "@/components/EnokiUserAuthModificationModal";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({
@@ -91,6 +92,10 @@ export default function EnokiUserAuth({ user }: { user: any }) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - User Account Management</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >

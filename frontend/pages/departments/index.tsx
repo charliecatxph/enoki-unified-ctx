@@ -22,6 +22,7 @@ import { GetServerSidePropsContext } from "next";
 import { isUserDataComplete, selectUserData } from "@/redux/features/userSlice";
 import { useSelector } from "react-redux";
 import CircularProgress from "@mui/material/CircularProgress";
+import Head from "next/head";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -199,6 +200,10 @@ export default function Departments({ user }: { user: any }) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - Departments of {__userData.name}</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >

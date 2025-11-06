@@ -21,6 +21,7 @@ import { isUserDataComplete, selectUserData } from "@/redux/features/userSlice";
 import axios from "axios";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import CircularProgress from "@mui/material/CircularProgress";
+import Head from "next/head";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -199,6 +200,10 @@ export default function Courses({ user }: { user: any }) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - Courses of {__userData.name}</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >

@@ -34,6 +34,7 @@ import { useEffect, useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { useRfidSocket } from "@/utils/useRfidSocket";
 import moment from "moment";
+import Head from "next/head";
 
 interface StudentCall {
   teacher: {
@@ -223,6 +224,10 @@ export default function Home({ user }: { user: any }) {
 
   return (
     <>
+      <Head>
+        <title>E-Noki - Dashboard</title>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <main
         className={`${poppins.className} bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 min-h-screen`}
       >
