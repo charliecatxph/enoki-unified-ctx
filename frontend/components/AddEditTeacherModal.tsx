@@ -57,6 +57,7 @@ export interface Teacher {
   department: any;
   departmentId: string;
   employeeRfidHash: string;
+  room: any;
 }
 
 export interface Department {
@@ -1199,7 +1200,7 @@ export default function AddEditTeacherModal({
                               <input
                                 type="time"
                                 value={secondsToTimeString(slot.startTime)}
-                                onInput={(e) => {
+                                onInput={(e: any) => {
                                   const newStartTime = timeStringToSeconds(
                                     e.target.value
                                   );
@@ -1212,7 +1213,7 @@ export default function AddEditTeacherModal({
                               <input
                                 type="time"
                                 value={secondsToTimeString(slot.endTime)}
-                                onInput={(e) => {
+                                onInput={(e: any) => {
                                   const newEndTime = timeStringToSeconds(
                                     e.target.value
                                   );

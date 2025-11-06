@@ -19,7 +19,7 @@ import {
   Bell,
   AlertCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import SendMessage from "@/components/SendMessage";
 import NotifyTeacher from "@/components/NotifyTeacher";
 import TeacherConfirmModal from "@/components/TeacherConfirmModal";
@@ -110,6 +110,7 @@ export default function Kiosk({
   const [confirmModalTeacher, setConfirmModalTeacher] = useState<any>(null);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [notifyTeacher, setNotifyTeacher] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const {
     data: departmentsData = [],
@@ -136,6 +137,30 @@ export default function Kiosk({
     refetchOnMount: true,
   });
 
+  // Query for all teachers (for search functionality)
+  const {
+    data: allTeachersData = [],
+    isFetching: allTeachersFetching,
+    isError: allTeachersError,
+    refetch: allTeachersRefetch,
+  } = useQuery({
+    queryKey: ["all-teachers"],
+    queryFn: async () => {
+      const res = await axios.get(`${api}/get-teachers`, {
+        params: {
+          institutionId: __userData.institutionId,
+        },
+      });
+
+      return res.data.data;
+    },
+    enabled: !!__userData.userId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+  });
+
+  // Query for department-specific teachers
   const {
     data: teachersData = [],
     isFetching: teachersFetching,
@@ -216,10 +241,38 @@ export default function Kiosk({
     onRfidData: (data) => {
       if (data.type !== "STATUS-CHANGE") return;
       teacherRefetch();
+      allTeachersRefetch();
     },
     playSound: false,
     soundFile: "notification.mp3",
   });
+
+  // Filter teachers based on search query
+  const filteredTeachers = useMemo(() => {
+    // Determine which dataset to use based on search and department selection
+    const sourceData = searchQuery.trim() 
+      ? allTeachersData  // Use all teachers when searching
+      : teachersData;    // Use department-specific teachers when not searching
+    
+    if (!searchQuery.trim()) {
+      return sourceData;
+    }
+    
+    return sourceData.filter((teacher: any) => {
+      const searchLower = searchQuery.toLowerCase();
+      const teacherName = teacher.name?.toLowerCase() || '';
+      const departmentName = departmentsData.find((d: any) => d.id === teacher.departmentId)?.name?.toLowerCase() || '';
+      const status = getStatusText(teacher.statistics?.status || teacher.status).toLowerCase();
+      const room = teacher.room?.toString().toLowerCase() || '';
+      
+      return (
+        teacherName.includes(searchLower) ||
+        departmentName.includes(searchLower) ||
+        status.includes(searchLower) ||
+        room.includes(searchLower)
+      );
+    });
+  }, [teachersData, allTeachersData, searchQuery, departmentsData]);
 
   return (
     <>
@@ -229,6 +282,28 @@ export default function Kiosk({
         <nav className="w-1/3 h-full overflow-y-auto">
           <div className=" max-w-[300px] rounded mb-5">
             <img src="enokiblck.svg" alt="" />
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative mb-4">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search teachers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <ul className="mt-4 space-y-3">
@@ -251,41 +326,54 @@ export default function Kiosk({
           </ul>
         </nav>
         <div className="w-2/3 bg-blue-700 h-full rounded-2xl p-8 overflow-y-auto">
-          {!selectedDepartmentId ? (
+          {!selectedDepartmentId && !searchQuery.trim() ? (
             <div className="flex items-center justify-center h-full text-yellow-300">
               <div className="text-center">
                 <User className="w-20 h-20 mx-auto mb-4 opacity-50" />
                 <p className="text-xl font-semibold">
                   Select a department to view teachers
                 </p>
+                <p className="text-sm mt-2 opacity-75">
+                  Or use the search bar to find teachers across all departments
+                </p>
               </div>
             </div>
-          ) : teachersFetching ? (
+          ) : (searchQuery.trim() ? allTeachersFetching : teachersFetching) ? (
             <div className="flex items-center justify-center h-full text-yellow-300">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-yellow-300 mx-auto mb-4"></div>
                 <p className="text-xl font-semibold">Loading teachers...</p>
               </div>
             </div>
-          ) : teachersError ? (
+          ) : (searchQuery.trim() ? allTeachersError : teachersError) ? (
             <div className="flex items-center justify-center h-full text-red-300">
               <div className="text-center">
                 <p className="text-xl font-semibold">Error loading teachers</p>
               </div>
             </div>
-          ) : teachersData.length === 0 ? (
+          ) : filteredTeachers.length === 0 ? (
             <div className="flex items-center justify-center h-full text-yellow-300">
               <div className="text-center">
                 <User className="w-20 h-20 mx-auto mb-4 opacity-50" />
                 <p className="text-xl font-semibold">
-                  No teachers found in this department
+                  {searchQuery.trim() 
+                    ? `No teachers found matching "${searchQuery}"`
+                    : "No teachers found in this department"}
                 </p>
+                {searchQuery.trim() && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="mt-3 text-yellow-200 hover:text-white underline transition-colors"
+                  >
+                    Clear search
+                  </button>
+                )}
               </div>
             </div>
           ) : (
             <div>
               <div className="grid grid-cols-1 gap-4">
-                {teachersData.map((teacher: any) => (
+                {filteredTeachers.map((teacher: any) => (
                   <div
                     key={teacher.id}
                     className="bg-yellow-50 rounded-2xl p-6 shadow-lg border border-yellow-200 hover:shadow-xl transition-all duration-200 flex flex-col h-full"

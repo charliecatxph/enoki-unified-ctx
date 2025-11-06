@@ -1,25 +1,15 @@
 import {
-  Check,
-  LineChart,
   Users,
   UserCheck,
   UserX,
-  Clock,
-  Settings,
-  UserPlus,
-  Building2,
-  ChevronRight,
   Phone,
   TrendingUp,
   LayoutDashboard,
-  Bell,
   IdCard,
   ArrowRight,
 } from "lucide-react";
 import { Inter, Poppins, Space_Grotesk } from "next/font/google";
-import { motion, useDeprecatedAnimatedState } from "framer-motion";
 import { useRouter } from "next/router";
-import { Line, Bar } from "react-chartjs-2";
 import Sidebar from "../components/Sidebar";
 import {
   Chart as ChartJS,
@@ -50,14 +40,17 @@ interface StudentCall {
     enokiAcct: {
       name: string;
     };
+    department: any;
   };
   student: {
     enokiAcct: {
       name: string;
     };
+    course: any;
   };
   calledAt: string;
   id: string;
+  callType: any;
 }
 
 ChartJS.register(
