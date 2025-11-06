@@ -49,15 +49,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function Courses({
-  user,
-  queries,
-  api,
-}: {
-  user: any;
-  queries: any;
-  api: string;
-}) {
+export default function Courses({ user }: { user: any }) {
   const queryClient = useQueryClient();
 
   const userData = useSelector(selectUserData);
@@ -93,11 +85,14 @@ export default function Courses({
   } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-courses`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-courses`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
       return res.data.data;
     },
     enabled: !!__userData.userId,
@@ -145,9 +140,12 @@ export default function Courses({
       await queryClient.fetchQuery({
         queryKey: ["coursesMutation"],
         queryFn: async () => {
-          const res = await axios.post(`${api}/delete-course`, {
-            id: courseId,
-          });
+          const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_API}/delete-course`,
+            {
+              id: courseId,
+            }
+          );
           return res.data;
         },
       });
@@ -165,10 +163,13 @@ export default function Courses({
         await queryClient.fetchQuery({
           queryKey: ["coursesMutation"],
           queryFn: async () => {
-            const res = await axios.post(`${api}/edit-course`, {
-              name: formData.name,
-              id: editingCourse.id,
-            });
+            const res = await axios.post(
+              `${process.env.NEXT_PUBLIC_API}/edit-course`,
+              {
+                name: formData.name,
+                id: editingCourse.id,
+              }
+            );
             return res.data;
           },
         });
@@ -178,10 +179,13 @@ export default function Courses({
         await queryClient.fetchQuery({
           queryKey: ["coursesMutation"],
           queryFn: async () => {
-            const res = await axios.post(`${api}/create-course`, {
-              name: formData.name,
-              institutionId: __userData.institutionId,
-            });
+            const res = await axios.post(
+              `${process.env.NEXT_PUBLIC_API}/create-course`,
+              {
+                name: formData.name,
+                institutionId: __userData.institutionId,
+              }
+            );
             return res.data;
           },
         });
@@ -233,7 +237,6 @@ export default function Courses({
                 <button
                   onClick={handleAddCourse}
                   className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
-                
                 >
                   <Plus size="20" />
                   Add Course
@@ -245,9 +248,7 @@ export default function Courses({
               <AnimatePresence>
                 {coursesRefetching && (
                   <div
-
                     key={"EXIC"}
-                   
                     className="refetch p-5 flex gap-5 items-center absolute bottom-0 right-0"
                   >
                     <CircularProgress
@@ -306,7 +307,6 @@ export default function Courses({
                     <button
                       onClick={handleAddCourse}
                       className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 mx-auto"
-                     
                     >
                       <Plus size="20" />
                       Add First Course
@@ -342,7 +342,6 @@ export default function Courses({
                         <div
                           key={course.id}
                           className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 flex flex-col h-full"
-                         
                         >
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center gap-3">
@@ -361,7 +360,9 @@ export default function Courses({
                           <div className="space-y-3 mb-4">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Users size="14" />
-                              <span>{course.students?.length || 0} Students</span>
+                              <span>
+                                {course.students?.length || 0} Students
+                              </span>
                             </div>
 
                             {course.students && course.students.length > 0 && (
@@ -394,7 +395,6 @@ export default function Courses({
                             <button
                               onClick={() => handleEditCourse(course)}
                               className="flex-1 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center gap-1"
-                            
                             >
                               <Edit3 size="14" />
                               Edit
@@ -402,7 +402,6 @@ export default function Courses({
                             <button
                               onClick={() => handleDeleteCourse(course)}
                               className="flex-1 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors duration-200 flex items-center justify-center gap-1"
-                            
                             >
                               <Trash2 size="14" />
                               Delete
@@ -417,14 +416,8 @@ export default function Courses({
               {/* Add/Edit Course Modal */}
               <AnimatePresence>
                 {showModal && (
-                  <div
-                    className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                  
-                  >
-                    <div
-                      className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 w-full max-w-md"
-                    
-                    >
+                  <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
                       <div className="flex justify-between items-center mb-6">
                         <h2
                           className={`${spaceGrotesk.className} text-2xl font-bold text-gray-800`}
@@ -464,7 +457,6 @@ export default function Courses({
                         <button
                           onClick={() => setShowModal(false)}
                           className="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                      
                         >
                           Cancel
                         </button>
@@ -472,7 +464,6 @@ export default function Courses({
                           onClick={handleSaveCourse}
                           disabled={!formData.name.trim()}
                           className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-200"
-       
                         >
                           <Save size="16" />
                           {editingCourse ? "Update Course" : "Add Course"}
@@ -486,14 +477,8 @@ export default function Courses({
               {/* Confirmation Dialog */}
               <AnimatePresence>
                 {showConfirmDialog && confirmAction && (
-                  <div
-                    className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                  
-                  >
-                    <div
-                      className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 w-full max-w-md"
-                     
-                    >
+                  <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 w-full max-w-md">
                       <div className="text-center">
                         <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
                           <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -514,7 +499,6 @@ export default function Courses({
                           <button
                             onClick={() => setShowConfirmDialog(false)}
                             className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
-                          
                           >
                             Cancel
                           </button>
@@ -537,7 +521,6 @@ export default function Courses({
                                 ? "bg-red-500 text-white hover:bg-red-600"
                                 : "bg-blue-500 text-white hover:bg-blue-600"
                             }`}
-                          
                           >
                             {confirmAction.type === "edit" && "Edit"}
                             {confirmAction.type === "delete" && "Delete"}

@@ -20,13 +20,12 @@ import { CircularProgress } from "@mui/material";
 import moment from "moment";
 import { motion } from "framer-motion";
 import { useEnokiModals } from "@/contexts/EnokiModalContext";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEnokiValidators } from "@/hooks/useEnokiValidators";
 import { useEnokiMutator } from "@/hooks/useEnokiMutator";
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"] });
 
 interface AddEditTeacherModal {
-  apiLink: string;
   isEditing: boolean;
   departments: any;
   institutionId: string;
@@ -119,7 +118,6 @@ interface WeeklySchedule {
 }
 
 export default function AddEditTeacherModal({
-  apiLink,
   isEditing,
   departments,
   institutionId,

@@ -21,12 +21,10 @@ const poppins = Poppins({
 });
 
 export default function NotifyTeacher({
-  api,
   teacher,
   institutionId,
   close,
 }: {
-  api: string;
   teacher: Teacher;
   institutionId: string;
   close: () => void;
@@ -91,10 +89,13 @@ export default function NotifyTeacher({
 
   const getStudentInformation = async () => {
     try {
-      const res = await axios.post(`${api}/get-student-info`, {
-        studentRfidHash: rfidStat.data.id,
-        institutionId: institutionId,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/get-student-info`,
+        {
+          studentRfidHash: rfidStat.data.id,
+          institutionId: institutionId,
+        }
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setLocalData((pv) => ({
         ...pv,

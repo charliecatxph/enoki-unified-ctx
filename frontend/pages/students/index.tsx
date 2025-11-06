@@ -51,7 +51,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function Students({ api, queries, user }: any) {
+export default function Students({ user }: any) {
   const { deleteStudent } = useEnokiMutator();
 
   const queryClient = useQueryClient();
@@ -79,11 +79,14 @@ export default function Students({ api, queries, user }: any) {
   } = useQuery({
     queryKey: ["students"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-students`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-students`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
       return res.data.data;
     },
     enabled: !!__userData.userId,
@@ -103,11 +106,14 @@ export default function Students({ api, queries, user }: any) {
   } = useQuery({
     queryKey: ["courses"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-courses`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-courses`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
       return res.data.data;
     },
     enabled: !!__userData.userId,
@@ -125,9 +131,12 @@ export default function Students({ api, queries, user }: any) {
     queryKey: ["studentCallHistory", selectedStudent?.id],
     queryFn: async () => {
       if (!selectedStudent) return [];
-      const res = await axios.post(`${api}/get-student-call-history`, {
-        id: selectedStudent.id,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/get-student-call-history`,
+        {
+          id: selectedStudent.id,
+        }
+      );
       return res.data.history || [];
     },
     enabled: !!selectedStudent?.id,

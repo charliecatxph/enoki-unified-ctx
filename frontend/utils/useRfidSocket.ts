@@ -27,7 +27,7 @@ interface RfidData {
 
 export function useRfidSocket(config: RfidSocketConfig = {}): RfidSocketReturn {
   const {
-    serverUrl = "http://localhost:8000",
+    serverUrl = process.env.NEXT_PUBLIC_WS_URL,
     enabled,
     onRfidData,
     onConnectionChange,
@@ -50,12 +50,12 @@ export function useRfidSocket(config: RfidSocketConfig = {}): RfidSocketReturn {
     }
     socketRef.current = io(serverUrl);
 
-    socketRef.current.on("sig", (data: { type: string, data: string }) => {
+    socketRef.current.on("sig", (data: { type: string; data: string }) => {
       setRfidData(data);
       setIsOnline(true);
-      console.log(data)
+      console.log(data);
       setIsPulsing(true);
-  
+
       if (playSound) {
         try {
           const audio = new Audio(soundFile);
@@ -66,11 +66,11 @@ export function useRfidSocket(config: RfidSocketConfig = {}): RfidSocketReturn {
           console.warn("Failed to create audio:", err);
         }
       }
-     
+
       if (onRfidData) {
         onRfidData(data);
       }
-     
+
       setTimeout(() => setIsPulsing(false), pulseDuration);
     });
 

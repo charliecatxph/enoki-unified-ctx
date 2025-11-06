@@ -19,7 +19,7 @@ import {
   Bell,
   AlertCircle,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import SendMessage from "@/components/SendMessage";
 import NotifyTeacher from "@/components/NotifyTeacher";
 import TeacherConfirmModal from "@/components/TeacherConfirmModal";
@@ -86,15 +86,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return auth;
 }
 
-export default function Kiosk({
-  api,
-  user,
-  queries,
-}: {
-  api: string;
-  user: any;
-  queries: string;
-}) {
+export default function Kiosk({ user }: { user: any }) {
   const { logout } = useEnokiMutator();
   const userData = useSelector(selectUserData);
   const __userData = isUserDataComplete(userData) ? userData : user;
@@ -111,6 +103,37 @@ export default function Kiosk({
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [notifyTeacher, setNotifyTeacher] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showKioskActionsModal, setShowKioskActionsModal] = useState(false);
+
+  // Long press functionality
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressing = useRef(false);
+
+  const handleLongPressStart = useCallback(() => {
+    isLongPressing.current = true;
+    longPressTimer.current = setTimeout(() => {
+      if (isLongPressing.current) {
+        setShowKioskActionsModal(true);
+      }
+    }, 10000); // 40 seconds
+  }, []);
+
+  const handleLongPressEnd = useCallback(() => {
+    isLongPressing.current = false;
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+      }
+    };
+  }, []);
 
   const {
     data: departmentsData = [],
@@ -123,11 +146,14 @@ export default function Kiosk({
   } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-departments`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-departments`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -146,11 +172,14 @@ export default function Kiosk({
   } = useQuery({
     queryKey: ["all-teachers"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-teachers`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-teachers`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -169,12 +198,15 @@ export default function Kiosk({
   } = useQuery({
     queryKey: ["teachers", selectedDepartmentId],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-teachers`, {
-        params: {
-          departmentId: selectedDepartmentId,
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-teachers`,
+        {
+          params: {
+            departmentId: selectedDepartmentId,
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -250,21 +282,26 @@ export default function Kiosk({
   // Filter teachers based on search query
   const filteredTeachers = useMemo(() => {
     // Determine which dataset to use based on search and department selection
-    const sourceData = searchQuery.trim() 
-      ? allTeachersData  // Use all teachers when searching
-      : teachersData;    // Use department-specific teachers when not searching
-    
+    const sourceData = searchQuery.trim()
+      ? allTeachersData // Use all teachers when searching
+      : teachersData; // Use department-specific teachers when not searching
+
     if (!searchQuery.trim()) {
       return sourceData;
     }
-    
+
     return sourceData.filter((teacher: any) => {
       const searchLower = searchQuery.toLowerCase();
-      const teacherName = teacher.name?.toLowerCase() || '';
-      const departmentName = departmentsData.find((d: any) => d.id === teacher.departmentId)?.name?.toLowerCase() || '';
-      const status = getStatusText(teacher.statistics?.status || teacher.status).toLowerCase();
-      const room = teacher.room?.toString().toLowerCase() || '';
-      
+      const teacherName = teacher.name?.toLowerCase() || "";
+      const departmentName =
+        departmentsData
+          .find((d: any) => d.id === teacher.departmentId)
+          ?.name?.toLowerCase() || "";
+      const status = getStatusText(
+        teacher.statistics?.status || teacher.status
+      ).toLowerCase();
+      const room = teacher.room?.toString().toLowerCase() || "";
+
       return (
         teacherName.includes(searchLower) ||
         departmentName.includes(searchLower) ||
@@ -281,7 +318,17 @@ export default function Kiosk({
       >
         <nav className="w-1/3 h-full overflow-y-auto">
           <div className=" max-w-[300px] rounded mb-5">
-            <img src="enokiblck.svg" alt="" />
+            <img
+              src="enokiblck.svg"
+              alt=""
+              onMouseDown={handleLongPressStart}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressEnd}
+              onTouchStart={handleLongPressStart}
+              onTouchEnd={handleLongPressEnd}
+              onTouchCancel={handleLongPressEnd}
+              style={{ userSelect: "none" }}
+            />
           </div>
 
           {/* Search Bar */}
@@ -356,7 +403,7 @@ export default function Kiosk({
               <div className="text-center">
                 <User className="w-20 h-20 mx-auto mb-4 opacity-50" />
                 <p className="text-xl font-semibold">
-                  {searchQuery.trim() 
+                  {searchQuery.trim()
                     ? `No teachers found matching "${searchQuery}"`
                     : "No teachers found in this department"}
                 </p>
@@ -380,7 +427,7 @@ export default function Kiosk({
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="relative">
+                        <div className="relative flex-0">
                           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-white font-semibold text-lg">
                             {teacher.name
                               .split(" ")
@@ -487,7 +534,6 @@ export default function Kiosk({
           <SendMessage
             teacher={selectedTeacher}
             close={handleCloseModal}
-            api={api}
             institutionId={__userData.institutionId}
           />
         )}
@@ -589,11 +635,42 @@ export default function Kiosk({
       <AnimatePresence>
         {showNotifyModal && notifyTeacher && (
           <NotifyTeacher
-            api={api}
             teacher={notifyTeacher}
             institutionId={__userData.institutionId}
             close={handleCloseNotifyModal}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Kiosk Actions Modal */}
+      <AnimatePresence>
+        {showKioskActionsModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">
+                  ACTIONS
+                </h2>
+
+                <button
+                  onClick={() => {
+                    logout.mutate();
+                    setShowKioskActionsModal(false);
+                  }}
+                  className="w-full bg-red-600 text-white px-6 py-4 rounded-lg font-medium hover:bg-red-700 transition-colors duration-200 mb-4"
+                >
+                  Logout
+                </button>
+
+                <button
+                  onClick={() => setShowKioskActionsModal(false)}
+                  className="w-full bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </AnimatePresence>
     </>

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Student } from "@/components/AddEditStudentModal";
 import { useRouter } from "next/router";
 
-const api = process.env.NEXT_PUBLIC_API_URL;
+const api = process.env.NEXT_PUBLIC_API;
 
 export const useEnokiMutator = () => {
   const queryClient = useQueryClient();
