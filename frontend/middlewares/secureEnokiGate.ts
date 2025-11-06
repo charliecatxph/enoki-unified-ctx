@@ -30,7 +30,7 @@ export const authGate = async (ctx: GetServerSidePropsContext) => {
       }
     );
 
-    const userData = {
+    const userData: any = {
       ...(jwt.decode(res.data.token) as object),
       token: res.data.token,
     };
