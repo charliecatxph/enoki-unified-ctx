@@ -23,12 +23,10 @@ const poppins = Poppins({
 });
 
 export default function SendMessage({
-  api,
   teacher,
   institutionId,
   close,
 }: {
-  api: string;
   teacher: Teacher;
   institutionId: string;
   close: () => void;
@@ -106,10 +104,13 @@ export default function SendMessage({
 
   const getStudentInformation = async () => {
     try {
-      const res = await axios.post(`${api}/get-student-info`, {
-        studentRfidHash: rfidStat.data.id,
-        institutionId: institutionId,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/get-student-info`,
+        {
+          studentRfidHash: rfidStat.data.id,
+          institutionId: institutionId,
+        }
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setLocalData((pv) => ({
         ...pv,
@@ -160,7 +161,7 @@ export default function SendMessage({
           >
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-yellow-300 font-bold text-2xl">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex shrink-0 items-center justify-center text-yellow-300 font-bold text-2xl">
                   {teacher.name
                     .split(" ")
                     .map((n: string) => n[0])

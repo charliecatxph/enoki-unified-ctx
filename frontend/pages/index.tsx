@@ -130,15 +130,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function Home({
-  user,
-  queries,
-  api,
-}: {
-  user: any;
-  queries: any;
-  api: string;
-}) {
+export default function Home({ user }: { user: any }) {
   const router = useRouter();
 
   const userData = useSelector(selectUserData);
@@ -163,11 +155,14 @@ export default function Home({
   } = useQuery({
     queryKey: ["faculty"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-teachers`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-teachers`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -185,9 +180,12 @@ export default function Home({
   } = useQuery({
     queryKey: ["studentCalls"],
     queryFn: async () => {
-      const res = await axios.post(`${api}/get-student-calls`, {
-        institutionId: __userData.institutionId,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API}/get-student-calls`,
+        {
+          institutionId: __userData.institutionId,
+        }
+      );
 
       return res.data.calls;
     },

@@ -3,14 +3,33 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import { parse } from "cookie";
 
-const redirectIfLoggedIn = ["/login", "/create-enoki-instance"];
-const protectedRoutes = [
-  "/",
-  "/teachers",
-  "/departments",
-  "/courses",
-  "/students",
-];
+type Role = "OWNER" | "ADMIN" | "KIOSK" | "STUDENT" | "TEACHER";
+
+const accessRules: Record<Role, string[]> = {
+  OWNER: [
+    "/",
+    "/teachers",
+    "/departments",
+    "/courses",
+    "/students",
+    "/enoki-userauth",
+    "/enoki-sysconf",
+  ],
+  ADMIN: [
+    "/",
+    "/teachers",
+    "/departments",
+    "/courses",
+    "/students",
+    "/enoki-userauth",
+    "/enoki-sysconf",
+  ],
+  KIOSK: ["/kiosk"],
+  STUDENT: [],
+  TEACHER: [],
+};
+
+const passThrough = ["/enoki-inst-reg"];
 
 export const authGate = async (ctx: GetServerSidePropsContext) => {
   const cookie = parse(ctx.req.headers.cookie || "")?.refreshToken || "";
@@ -35,36 +54,34 @@ export const authGate = async (ctx: GetServerSidePropsContext) => {
       token: res.data.token,
     };
 
-    if (redirectIfLoggedIn.some((route) => route === resolvedUrl)) {
+    if (passThrough.includes(resolvedUrl)) {
       return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
+        props: { user: null },
       };
     }
 
-    if (userData.actType !== "KIOSK" && resolvedUrl === "/kiosk") {
+    if (resolvedUrl === "/invalid-user-permissions") {
       return {
-        redirect: {
-          destination: "/",
-          permanent: false,
-        },
+        props: { user: userData },
       };
-    }
+    } // debounce
 
-    if (userData.actType !== "OWNER" && resolvedUrl === "/") {
-      if (userData.actType === "KIOSK") {
-        return {
-          redirect: {
-            destination: "/kiosk",
-            permanent: false,
-          },
-        };
-      }
+    const isAllowed = (accessRules[userData.actType as Role] || []).includes(
+      resolvedUrl
+    );
+    if (!isAllowed) {
+      const fallbackRoutes: any = {
+        OWNER: "/",
+        ADMIN: "/",
+        KIOSK: "/kiosk",
+      };
+
+      const destination =
+        fallbackRoutes[userData.actType as Role] || "/invalid-user-permissions";
+
       return {
         redirect: {
-          destination: "/invalid-user-permissions",
+          destination,
           permanent: false,
         },
       };
@@ -74,24 +91,19 @@ export const authGate = async (ctx: GetServerSidePropsContext) => {
       props: {
         user: userData,
         queries: query,
-        api: server,
       },
     };
   } catch (e) {
-    if (protectedRoutes.some((route) => route === resolvedUrl)) {
+    if (resolvedUrl === "/login") {
       return {
-        redirect: {
-          destination: "/login",
-          permanent: false,
-        },
+        props: { user: null },
       };
-    }
+    } // debounce
 
     return {
-      props: {
-        user: null,
-        queries: query,
-        api: server,
+      redirect: {
+        destination: "/login",
+        permanent: false,
       },
     };
   }

@@ -48,15 +48,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return auth;
 }
 
-export default function Departments({
-  api,
-  user,
-  queries,
-}: {
-  api: string;
-  user: any;
-  queries: string;
-}) {
+export default function Departments({ user }: { user: any }) {
   const userData = useSelector(selectUserData);
   const __userData = isUserDataComplete(userData) ? userData : user;
 
@@ -91,11 +83,14 @@ export default function Departments({
   } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-departments`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-departments`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -112,7 +107,6 @@ export default function Departments({
     );
     setFilteredDepartments(filtered ?? []);
   }, [departmentsData, searchTerm, departmentsFetched]);
-
 
   const handleAddDepartment = () => {
     setEditingDepartment(null);
@@ -146,9 +140,12 @@ export default function Departments({
       await queryClient.fetchQuery({
         queryKey: ["departmentsMutation"],
         queryFn: async () => {
-          const res = await axios.post(`${api}/delete-department`, {
-            id: departmentId,
-          });
+          const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_API}/delete-department`,
+            {
+              id: departmentId,
+            }
+          );
           return res.data;
         },
       });
@@ -166,10 +163,13 @@ export default function Departments({
         await queryClient.fetchQuery({
           queryKey: ["departmentsMutation"],
           queryFn: async () => {
-            const res = await axios.post(`${api}/edit-department`, {
-              name: formData.name,
-              id: editingDepartment.id,
-            });
+            const res = await axios.post(
+              `${process.env.NEXT_PUBLIC_API}/edit-department`,
+              {
+                name: formData.name,
+                id: editingDepartment.id,
+              }
+            );
             return res.data;
           },
         });
@@ -179,10 +179,13 @@ export default function Departments({
         await queryClient.fetchQuery({
           queryKey: ["departmentsMutation"],
           queryFn: async () => {
-            const res = await axios.post(`${api}/create-department`, {
-              name: formData.name,
-              institutionId: __userData.institutionId,
-            });
+            const res = await axios.post(
+              `${process.env.NEXT_PUBLIC_API}/create-department`,
+              {
+                name: formData.name,
+                institutionId: __userData.institutionId,
+              }
+            );
             return res.data;
           },
         });
@@ -210,9 +213,7 @@ export default function Departments({
                   <Building size="30" strokeWidth={1.2} />
                 </div>
                 <div>
-                  <h1 className="font-[600] text-white text-sm">
-                    Departments
-                  </h1>
+                  <h1 className="font-[600] text-white text-sm">Departments</h1>
                   <p className="font-[400] text-white/70 text-xs">
                     Manage academic departments and their faculty
                   </p>
@@ -234,7 +235,6 @@ export default function Departments({
                 <button
                   onClick={handleAddDepartment}
                   className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
-
                 >
                   <Plus size="20" />
                   Add Department
@@ -256,7 +256,7 @@ export default function Departments({
                     }}
                   />{" "}
                   <span>Getting latest data...</span>
-                </  div>
+                </div>
               )}
             </AnimatePresence>
 
@@ -300,7 +300,6 @@ export default function Departments({
                     <button
                       onClick={handleAddDepartment}
                       className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 mx-auto"
-
                     >
                       <Plus size="20" />
                       Add First Department
@@ -336,7 +335,6 @@ export default function Departments({
                       <div
                         key={department.id}
                         className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-200 flex flex-col h-full"
-
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
@@ -390,7 +388,6 @@ export default function Departments({
                           <button
                             onClick={() => handleEditDepartment(department)}
                             className="flex-1 bg-blue-50 text-blue-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors duration-200 flex items-center justify-center gap-1"
-
                           >
                             <Edit3 size="14" />
                             Edit
@@ -398,7 +395,6 @@ export default function Departments({
                           <button
                             onClick={() => handleDeleteDepartment(department)}
                             className="flex-1 bg-red-50 text-red-600 px-3 py-2 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors duration-200 flex items-center justify-center gap-1"
-
                           >
                             <Trash2 size="14" />
                             Delete
@@ -413,13 +409,8 @@ export default function Departments({
             {/* Add/Edit Department Modal */}
             <AnimatePresence>
               {showModal && (
-                <div
-                  className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-
-                >
-                  <div
-                    className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 w-full max-w-md"
-                  >
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 w-full max-w-md">
                     <div className="flex justify-between items-center mb-6">
                       <h2
                         className={`${spaceGrotesk.className} text-2xl font-bold text-gray-800`}
@@ -483,14 +474,8 @@ export default function Departments({
             {/* Confirmation Dialog */}
             <AnimatePresence>
               {showConfirmDialog && confirmAction && (
-                <div
-                  className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-
-                >
-                  <div
-                    className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 w-full max-w-md"
-
-                  >
+                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-6 w-full max-w-md">
                     <div className="text-center">
                       <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 mb-4">
                         <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -511,7 +496,6 @@ export default function Departments({
                         <button
                           onClick={() => setShowConfirmDialog(false)}
                           className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
-
                         >
                           Cancel
                         </button>
@@ -531,11 +515,11 @@ export default function Departments({
                               );
                             }
                           }}
-                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${confirmAction.type === "delete"
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                            confirmAction.type === "delete"
                               ? "bg-red-500 text-white hover:bg-red-600"
                               : "bg-blue-500 text-white hover:bg-blue-600"
-                            }`}
-
+                          }`}
                         >
                           {confirmAction.type === "edit" && "Edit"}
                           {confirmAction.type === "delete" && "Delete"}

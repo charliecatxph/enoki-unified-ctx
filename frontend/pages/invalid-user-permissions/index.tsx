@@ -3,6 +3,7 @@ import { Poppins, Space_Grotesk } from "next/font/google";
 import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 import { authGate } from "@/middlewares/secureEnokiGate";
+import { useEnokiMutator } from "@/hooks/useEnokiMutator";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -18,8 +19,9 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function InvalidUserPermissions({ user, queries, api }: any) {
+export default function InvalidUserPermissions({ user }: any) {
   const router = useRouter();
+  const { logout } = useEnokiMutator();
 
   return (
     <main
@@ -45,9 +47,9 @@ export default function InvalidUserPermissions({ user, queries, api }: any) {
               You don't have permission to access this page
             </p>
             <p className="text-sm text-gray-500">
-              Your current account type doesn't have the necessary permissions to
-              view this content. Please contact your administrator if you believe
-              this is an error.
+              Your current account type doesn't have the necessary permissions
+              to view this content. Please contact your administrator if you
+              believe this is an error.
             </p>
           </div>
 
@@ -73,11 +75,10 @@ export default function InvalidUserPermissions({ user, queries, api }: any) {
                     </span>
                   </p>
                 </div>
+                <button onClick={() => logout.mutate()}>Logout</button>
               </div>
             </div>
           )}
-
-
         </div>
       </div>
     </main>

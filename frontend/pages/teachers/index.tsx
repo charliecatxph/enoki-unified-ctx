@@ -110,13 +110,13 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function Teachers({ user, queries, api }: any) {
+export default function Teachers({ user }: any) {
   // mutations
   const queryClient = useQueryClient();
 
   const deleteTeacher = useMutation({
     mutationFn: (data: Partial<Teacher>) => {
-      return axios.post(`${api}/delete-teacher`, {
+      return axios.post(`${process.env.NEXT_PUBLIC_API}/delete-teacher`, {
         id: data.id,
       });
     },
@@ -153,11 +153,14 @@ export default function Teachers({ user, queries, api }: any) {
   const { data: departmentsData = [] } = useQuery({
     queryKey: ["departments"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-departments`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-departments`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -175,11 +178,14 @@ export default function Teachers({ user, queries, api }: any) {
   } = useQuery({
     queryKey: ["faculty"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-teachers`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-teachers`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
@@ -451,7 +457,6 @@ export default function Teachers({ user, queries, api }: any) {
               <AnimatePresence>
                 {forms.addEditModal && (
                   <AddEditTeacherModal
-                    apiLink={api}
                     isEditing={false}
                     departments={departmentsData}
                     institutionId={__userData.institutionId}

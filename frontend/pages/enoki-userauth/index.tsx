@@ -24,13 +24,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
   return await authGate(ctx);
 }
 
-export default function EnokiUserAuth({
-  user,
-  api,
-}: {
-  user: any;
-  api: string;
-}) {
+export default function EnokiUserAuth({ user }: { user: any }) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -59,11 +53,14 @@ export default function EnokiUserAuth({
   } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const res = await axios.get(`${api}/get-users-institution`, {
-        params: {
-          institutionId: __userData.institutionId,
-        },
-      });
+      const res = await axios.get(
+        `${process.env.NEXT_PUBLIC_API}/get-users-institution`,
+        {
+          params: {
+            institutionId: __userData.institutionId,
+          },
+        }
+      );
 
       return res.data.data;
     },
