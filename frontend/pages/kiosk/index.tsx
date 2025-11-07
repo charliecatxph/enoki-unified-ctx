@@ -4,7 +4,7 @@ import { GetServerSideProps } from "next";
 import { Inter } from "next/font/google";
 import { useSelector } from "react-redux";
 import { GetServerSidePropsContext } from "next";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import {
   ChevronRight,
@@ -88,6 +88,7 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 }
 
 export default function Kiosk({ user }: { user: any }) {
+  const queryClient = useQueryClient();
   const { logout } = useEnokiMutator();
   const userData = useSelector(selectUserData);
   const __userData = isUserDataComplete(userData) ? userData : user;
@@ -273,8 +274,16 @@ export default function Kiosk({ user }: { user: any }) {
     enabled: true,
     onRfidData: (data) => {
       if (data.type !== "STATUS-CHANGE") return;
-      teacherRefetch();
-      allTeachersRefetch();
+
+      queryClient.invalidateQueries({
+        queryKey: ["teachers"],
+        exact: false,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["all-teachers"],
+        exact: false,
+      });
     },
     playSound: false,
     soundFile: "notification.mp3",
