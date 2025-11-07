@@ -13,60 +13,94 @@ import moment from "moment";
 import { SerialPort } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
 
-const openPort = () => {
-  const port = new SerialPort({
-    path: process.env.RFID_PORT_PATH,
-    baudRate: 115200,
-    autoOpen: false, // we open manually to handle retry
-  });
+let port = null;
+let parser = null;
+let reconnectTimer = null;
 
-  const tryOpen = () => {
-    port.open((err) => {
-      if (err) {
-        console.log("Cannot open RFID port :(");
-        console.log("[RFID Trace] - ", err.message);
-        console.log("Retrying in 2 seconds...");
-        setTimeout(tryOpen, 2000); // retry after 2s
-        return;
-      }
-      console.log("RFID port opened successfully!");
-    });
-  };
+const PORT_PATH = process.env.RFID_PORT_PATH;
+const BAUD_RATE = 115200;
 
-  tryOpen();
-
-  return port;
+const scheduleReconnect = (delay = 2000) => {
+  if (reconnectTimer) return; // avoid multiple timers
+  console.log(`[RFID Trace] - Retrying in ${delay / 1000}s...`);
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    openPort();
+  }, delay);
 };
 
-const port = openPort();
+const setupParser = () => {
+  parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
+  parser.on("data", (data) => {
+    let rfidBuf = data.split(" ").map((el) => el.replace(/\r/, ""));
+    const tag = rfidBuf.shift();
+    const result = rfidBuf.join(" ");
 
-const parser = port.pipe(new ReadlineParser({ delimiter: "\n" }));
+    if (tag === "[ENOKI-RFID-SIG]") {
+      console.log("[RFID Trace] - Emission complete.", result);
+      emitToAll("sig", { type: "RFID-READ", data: result, dest: "KIOSK" });
+    }
+  });
+};
 
-parser.on("data", (data) => {
-  let rfidBuf = data.split(" ");
-  rfidBuf = rfidBuf.map((el) => el.replace(/\r/, ""));
-  const tag = rfidBuf.shift();
-  const result = rfidBuf.join(" ");
+const openPort = () => {
+  console.log(`[RFID Trace] - Attempting to open ${PORT_PATH}...`);
+  port = new SerialPort({
+    path: PORT_PATH,
+    baudRate: BAUD_RATE,
+    autoOpen: false,
+  });
 
-  if (tag === "[ENOKI-RFID-SIG]") {
-    console.log("Emission complete.", result);
-    emitToAll("sig", { type: "RFID-READ", data: result, dest: "KIOSK" });
+  port.open((err) => {
+    if (err) {
+      console.log("[RFID Trace] - Failed to open port:", err.message);
+      scheduleReconnect();
+      return;
+    }
+    console.log("[RFID Trace] - RFID port opened successfully!");
+  });
+
+  port.once("open", () => {
+    console.log("[RFID Trace] - Connected to E-Noki RFID Onboard Reader");
+    setupParser();
+  });
+
+  port.once("close", () => {
+    console.log("[RFID Trace] - RFID port closed");
+    cleanupPort();
+    scheduleReconnect();
+  });
+
+  port.once("error", (err) => {
+    console.log("[RFID Trace] - Port error:", err.message);
+    cleanupPort();
+    scheduleReconnect();
+  });
+};
+
+const cleanupPort = () => {
+  try {
+    if (parser) {
+      parser.removeAllListeners();
+      parser = null;
+    }
+    if (port) {
+      port.removeAllListeners();
+      if (port.isOpen) port.close();
+      port = null;
+    }
+  } catch (e) {
+    console.log("[RFID Trace] - Cleanup error:", e);
   }
-});
+};
 
-port.on("open", () => {
-  console.log("Connected to E-Noki RFID Onboard Reader");
-});
-
-port.on("error", (err) => {
-  console.log("Error connecting to E-Noki RFID Onboard Reader", err);
-});
+openPort();
 
 const app = express();
 const server = createServer(app);
 
 const corsInstance = cors({
-  origin: ["http://localhost:9000"],
+  origin: process.env.ORIGIN,
   credentials: true,
 });
 
@@ -88,20 +122,12 @@ initSocket(io);
 export const socketsConnected = new Map();
 
 io.on("connection", (socket) => {
-  console.log("User connected: ", socket.id);
   if (socket.handshake.auth?.id) {
     socketsConnected.set(socket.handshake.auth.id, socket.id);
   }
-  console.log(socketsConnected);
   socket.on("disconnect", () => {
-    console.log("User disconnected: ", socket.id);
     socketsConnected.delete(socket.id);
   });
-});
-
-app.use((req, res, next) => {
-  console.log("Incoming request: ", req.method, req.url);
-  next();
 });
 
 server.listen(process.env.PORT, () => {
@@ -111,7 +137,7 @@ server.listen(process.env.PORT, () => {
 
 cron.schedule("* * * * *", async () => {
   // run every 5m
-  console.log("checking for teachers...");
+  console.log("[E-Noki Periodic Check] - Checking for teachers");
 
   const tstat = await prisma.teacherStatistics.findMany({
     where: {
