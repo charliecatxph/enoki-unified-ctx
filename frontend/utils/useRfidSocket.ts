@@ -48,7 +48,10 @@ export function useRfidSocket(config: RfidSocketConfig = {}): RfidSocketReturn {
     if (!enabled) {
       return;
     }
-    socketRef.current = io(serverUrl);
+    socketRef.current = io(
+      serverUrl,
+      process.env.MODE === "PRODUCTION" ? { path: "/api" } : {}
+    );
 
     socketRef.current.on("sig", (data: { type: string; data: string }) => {
       setRfidData(data);

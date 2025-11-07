@@ -6,6 +6,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Provider } from "react-redux";
 import { store } from "../redux/store";
 import { EnokiModalProvider } from "@/contexts/EnokiModalContext";
+import { KeyboardProvider } from "@/contexts/KeyboardContext";
 
 const queryClient = new QueryClient();
 export default function App({ Component, pageProps }: AppProps) {
@@ -13,7 +14,9 @@ export default function App({ Component, pageProps }: AppProps) {
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
         <EnokiModalProvider>
-          <Component {...pageProps} />
+          <KeyboardProvider>
+            <Component {...pageProps} />
+          </KeyboardProvider>
         </EnokiModalProvider>
       </Provider>
       <ReactQueryDevtools />

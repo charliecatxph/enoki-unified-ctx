@@ -235,7 +235,7 @@ export default function Home({ user }: { user: any }) {
           <Sidebar userData={__userData} />
           <div className="main-panel flex-1">
             <header
-              className={`${inter.className} p-5 bg-blue-600 text-white w-full sticky top-0 z-10 flex gap-5 items-center`}
+              className={`${inter.className} p-5 z-[99] bg-blue-600 text-white w-full sticky top-0 z-10 flex gap-5 items-center`}
             >
               <div>
                 <LayoutDashboard size="30" strokeWidth={1.2} />
@@ -250,7 +250,7 @@ export default function Home({ user }: { user: any }) {
             <div className="grid grid-cols-3 grid-rows-[300px_500px] gap-4 px-5 p-5">
               <div className="col-span-2 row-span-1 rounded-2xl statistics p-8 bg-white border border-white/20">
                 {facultyPending && (
-                  <div className="h-[400px] grid place-items-center">
+                  <div className="h-full grid place-items-center">
                     <CircularProgress sx={{ color: "#0000ff" }} />
                   </div>
                 )}
@@ -444,22 +444,23 @@ export default function Home({ user }: { user: any }) {
                               key={call.id}
                               className="bg-gray-50 hover:bg-gray-100 p-4 rounded-lg transition-all duration-200 border border-gray-200"
                             >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4 flex-1">
-                                  {/* Student Avatar */}
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                              <div className="flex items-center justify-between w-full">
+                                {/* Left side (student → teacher) */}
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                  {/* Student */}
+                                  <div className="flex items-center gap-2 flex-1 min-w-0 max-w-[20%]">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex-shrink-0 flex items-center justify-center text-white font-semibold text-xs">
                                       {call.student.enokiAcct.name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .slice(0, 2)
                                         .join("")}
                                     </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-sm font-medium text-gray-700">
+                                    <div className="flex-1 min-w-0 flex flex-col">
+                                      <span className="text-sm font-medium truncate text-gray-700">
                                         {call.student.enokiAcct.name}
                                       </span>
-                                      <span className="text-xs font-thin text-gray-700">
+                                      <span className="text-xs font-thin truncate text-gray-700">
                                         {call.student.course.name}
                                       </span>
                                     </div>
@@ -468,23 +469,23 @@ export default function Home({ user }: { user: any }) {
                                   {/* Arrow */}
                                   <ArrowRight
                                     size="16"
-                                    className="text-gray-400"
+                                    className="text-gray-400 flex-shrink-0"
                                   />
 
-                                  {/* Teacher Avatar */}
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                                  {/* Teacher */}
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex-shrink-0 flex items-center justify-center text-white font-semibold text-xs">
                                       {call.teacher.enokiAcct.name
                                         .split(" ")
                                         .map((n) => n[0])
                                         .slice(0, 2)
                                         .join("")}
                                     </div>
-                                    <div className="flex flex-col">
-                                      <span className="text-sm font-medium text-gray-700">
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                      <span className="text-sm font-medium truncate text-gray-700">
                                         {call.teacher.enokiAcct.name}
                                       </span>
-                                      <span className="text-xs font-thin text-gray-700">
+                                      <span className="text-xs font-thin truncate text-gray-700">
                                         {call.teacher.department.name}
                                       </span>
                                     </div>
@@ -492,8 +493,8 @@ export default function Home({ user }: { user: any }) {
                                 </div>
 
                                 {/* Timestamp */}
-                                <div className="text-xs text-gray-500 flex flex-col items-end">
-                                  <span className="font-[600]">
+                                <div className="text-xs text-gray-500 flex flex-col items-end flex-shrink-0 ml-4">
+                                  <span className="font-semibold">
                                     {moment(call.calledAt).format("hh:mm:ss A")}
                                   </span>
                                   <span>{call.callType}</span>
