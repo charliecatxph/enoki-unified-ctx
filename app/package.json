@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:android-development": "npx eas build --profile development --platform android --local",
-    "build:android-production": "expo prebuild && cd app && ./gradlew assembleRelease"
+    "build:android-production": "expo prebuild && cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
