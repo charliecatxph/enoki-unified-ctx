@@ -34,7 +34,7 @@ export default async function getMessages(req, res) {
           },
         },
         message: true,
-        sentAt: true,
+        calledAt: true,
         isRead: true,
         id: true,
       },
@@ -65,7 +65,7 @@ export default async function getMessages(req, res) {
 
       acc[studentId].messages.push({
         message: message.message,
-        sentAt: message.sentAt,
+        sentAt: message.calledAt,
         isRead: message.isRead,
         id: message.id,
       });
