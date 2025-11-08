@@ -24,7 +24,7 @@ const navigationItems: NavigationItem[] = [
 ];
 
 const enoKiItems: NavigationItem[] = [
-  { name: "System Configuration", path: "/enoki-settings" },
+  { name: "System Configuration", path: "/enoki-sysconf" },
   { name: "User Account Management", path: "/enoki-userauth" },
 ];
 
