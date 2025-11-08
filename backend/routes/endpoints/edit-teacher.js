@@ -18,13 +18,13 @@ export default async (req, res) => {
   try {
     await prisma.enokiAcct.update({
       where: {
-        teacherId: id
+        teacherId: id,
       },
       data: {
         name,
         email,
-      }
-    })
+      },
+    });
 
     await prisma.teacher.update({
       where: {
@@ -32,7 +32,7 @@ export default async (req, res) => {
       },
       data: {
         schedule,
-        employeeRfidHash,
+        employeeRfidHash: employeeRfidHash.trim().toUpperCase(),
         department: {
           connect: {
             id: departmentId,

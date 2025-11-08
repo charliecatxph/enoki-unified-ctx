@@ -1,4 +1,4 @@
-import { socketsConnected } from "../../index.js";
+import { espSocket, socketsConnected } from "../../index.js";
 import sendPushNotification from "../../lib/expoSend.js";
 import { prisma } from "../../lib/prisma.js";
 import { emitToAll, emitToSocket } from "../../lib/socket.js";
@@ -34,6 +34,11 @@ export default async function notifyTeacher(req, res) {
       },
       include: {
         enokiAcct: true,
+        notificationLED: {
+          include: {
+            enokiLEDSystem: true,
+          },
+        },
       },
     });
 
@@ -66,6 +71,8 @@ export default async function notifyTeacher(req, res) {
     }
     emitToAll("sig", { type: "DSH-MESSAGE" });
 
+    console.log(teacher.pushNotificationToken);
+
     if (teacher.pushNotificationToken) {
       await sendPushNotification(
         teacher.pushNotificationToken,
@@ -73,6 +80,58 @@ export default async function notifyTeacher(req, res) {
         `${student.enokiAcct.name} waiting outside`,
         "notification"
       );
+    }
+
+    if (teacher.notificationLED) {
+      console.log("Turning on LED");
+      const newLEDSystemState =
+        (teacher.notificationLED.enokiLEDSystem.currentState |=
+          1 << teacher.notificationLED.idx);
+      await prisma.enokiLEDSystem.update({
+        where: {
+          deviceSID: teacher.notificationLED.enokiLEDSystem.deviceSID,
+        },
+        data: {
+          currentState: newLEDSystemState,
+        },
+      });
+      console.log("LED Turned on");
+      espSocket.send(
+        JSON.stringify({
+          type: "update",
+          state: newLEDSystemState,
+        })
+      );
+      console.log("Turning off LED");
+      setTimeout(async () => {
+        const val = await prisma.enokiLEDSystem.findUnique({
+          where: {
+            deviceSID: teacher.notificationLED.enokiLEDSystem.deviceSID,
+          },
+          select: {
+            currentState: true,
+          },
+        }); // race condition prevention
+
+        const disablingState = (val.currentState &= ~(
+          1 << teacher.notificationLED.idx
+        ));
+        await prisma.enokiLEDSystem.update({
+          where: {
+            deviceSID: teacher.notificationLED.enokiLEDSystem.deviceSID,
+          },
+          data: {
+            currentState: disablingState,
+          },
+        });
+        console.log("LED Turned off");
+        espSocket.send(
+          JSON.stringify({
+            type: "update",
+            state: disablingState,
+          })
+        );
+      }, 8000);
     }
 
     return res.status(200).json({ success: true });

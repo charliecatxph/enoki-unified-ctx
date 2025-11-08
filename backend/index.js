@@ -12,6 +12,7 @@ import { prisma } from "./lib/prisma.js";
 import moment from "moment";
 import { SerialPort } from "serialport";
 import { ReadlineParser } from "@serialport/parser-readline";
+import { WebSocketServer } from "ws";
 
 let port = null;
 let parser = null;
@@ -94,7 +95,7 @@ const cleanupPort = () => {
   }
 };
 
-openPort();
+// openPort();
 
 const app = express();
 const server = createServer(app);
@@ -121,6 +122,23 @@ initSocket(io);
 
 export const socketsConnected = new Map();
 
+// prisma.enokiPhysicalLED
+//   .update({
+//     where: {
+//       ledUq: "f23c991d",
+//     },
+//     data: {
+//       teacher: {
+//         connect: {
+//           id: "0003796e-d925-453b-a711-8cd19f1ed56f",
+//         },
+//       },
+//     },
+//   })
+//   .then(() => {
+//     console.log("Connection success.");
+//   }); temporary injection
+
 io.on("connection", (socket) => {
   if (socket.handshake.auth?.id) {
     socketsConnected.set(socket.handshake.auth.id, socket.id);
@@ -130,8 +148,84 @@ io.on("connection", (socket) => {
   });
 });
 
+const native__wss = new WebSocketServer({ noServer: true });
+
+export let espSocket = null;
+const firstSetupEnokiLedSystem = async (dx) => {
+  const ledSystem = await prisma.enokiLEDSystem.findUnique({
+    where: {
+      deviceSID: dx.deviceSID,
+    },
+  });
+
+  if (ledSystem) {
+    console.log("E-Noki LED System already provisioned!", dx.name);
+    console.log("Updating current state...");
+
+    await prisma.enokiLEDSystem.update({
+      where: {
+        deviceSID: dx.deviceSID,
+      },
+      data: {
+        currentState: dx.currentState,
+      },
+    });
+    return;
+  }
+
+  await prisma.enokiLEDSystem.create({
+    data: {
+      deviceSID: dx.deviceSID,
+      name: dx.name,
+      institutionId: dx.institutionId,
+      physicalLeds: {
+        createMany: {
+          data: dx.ledArray.map((led) => ({
+            ledUq: led.ledUq,
+            color: led.color,
+            idx: led.idx,
+          })),
+        },
+      },
+      currentState: dx.currentState,
+    },
+  });
+
+  console.log("E-Noki LED System provisioned successfully!", dx.name);
+};
+
+native__wss.on("connection", (ws) => {
+  espSocket = ws;
+  console.log("ESP connected via native WebSocket");
+
+  ws.on("message", async (msg) => {
+    try {
+      const data = JSON.parse(msg);
+      switch (data.type) {
+        case "init":
+          await firstSetupEnokiLedSystem(data).catch((e) => console.error(e));
+          break;
+      }
+    } catch (err) {
+      console.error("Failed to parse message from ESP:", msg);
+    }
+  });
+
+  native__wss.on("close", () => {
+    console.log("ESP disconnected");
+    espSocket = null;
+  });
+});
+
+server.on("upgrade", (req, socket, head) => {
+  if (req.url === "/esp") {
+    native__wss.handleUpgrade(req, socket, head, (ws) => {
+      native__wss.emit("connection", ws, req);
+    });
+  }
+});
+
 server.listen(process.env.PORT, () => {
-  console.log("Socket.IO server running");
   console.log("App is listening at PORT", process.env.PORT);
 });
 
