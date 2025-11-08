@@ -42,6 +42,7 @@ export default function Login() {
       setIsSigningIn(true);
       await __login(email.v, password.v);
     } catch (error: any) {
+      console.log(error);
       if (error?.response) {
         if (error.response.data.code === "USER_NOT_FOUND") {
           setEmail((pv) => ({

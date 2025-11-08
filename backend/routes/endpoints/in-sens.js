@@ -12,6 +12,7 @@ export default async function inSens(req, res) {
   }
 
   try {
+    console.log(employeeRfidHash);
     const teacher = await prisma.teacher.findFirst({
       where: {
         employeeRfidHash,

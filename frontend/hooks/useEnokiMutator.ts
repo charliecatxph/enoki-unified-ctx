@@ -240,6 +240,20 @@ export const useEnokiMutator = () => {
     },
   });
 
+  const editEnokiLedSystem = useMutation({
+    mutationFn: ({ ledUq, teacherId }: any) => {
+      return axios.post(`${api}/link-led-to-teacher`, {
+        ledUq,
+        teacherId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["enoki-led-systems"],
+      });
+    },
+  });
+
   return {
     editTeacher,
     addTeacher,
@@ -251,5 +265,6 @@ export const useEnokiMutator = () => {
     logout,
     sendMessage,
     notifyTeacher,
+    editEnokiLedSystem,
   };
 };
