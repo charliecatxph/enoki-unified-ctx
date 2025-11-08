@@ -24,7 +24,8 @@
     "node-cron": "^4.2.1",
     "prisma": "^6.15.0",
     "serialport": "^13.0.0",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "supabase": "^2.48.3"

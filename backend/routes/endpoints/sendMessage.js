@@ -73,7 +73,8 @@ export default async function sendMessage(req, res) {
       await sendPushNotification(
         teacher.pushNotificationToken,
         `${student.enokiAcct.name} sent you a message`,
-        message.trim()
+        message.trim(),
+        "default"
       );
     }
 

@@ -8,16 +8,43 @@ datasource db {
 }
 
 model Institution {
-  id          String        @id @default(uuid())
-  name        String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  courses     Course[]
-  departments Department[]
-  enokiAccts  EnokiAcct[]
-  callTeacher CallTeacher[]
+  id            String          @id @default(uuid())
+  name          String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  courses       Course[]
+  departments   Department[]
+  enokiAccts    EnokiAcct[]
+  callTeacher   CallTeacher[]
+  deviceScanner EnokiLEDSystem?
 }
 
+model EnokiLEDSystem {
+  deviceSID     String             @id
+  name          String
+  installedAt   DateTime           @default(now())
+  institutionId String             @unique
+  institution   Institution        @relation(fields: [institutionId], references: [id])
+  currentState  Int // byte (bitshift 0b00000000)
+  physicalLeds  EnokiPhysicalLED[]
+}
+
+model EnokiPhysicalLED {
+  ledUq            String         @id
+  enokiLEDSystemId String
+  enokiLEDSystem   EnokiLEDSystem @relation(fields: [enokiLEDSystemId], references: [deviceSID])
+  color            String
+  idx              Int
+  teacherId        String?        @unique
+  teacher          Teacher?       @relation(fields: [teacherId], references: [id])
+}
+
+// expected value ledArray
+// [{
+//   name: String
+//   address: Int?
+//   uid: String
+// }]
 model EnokiAcct {
   id            String      @id @default(uuid())
   name          String
@@ -73,6 +100,7 @@ model Teacher {
   department            Department?        @relation(fields: [departmentId], references: [id])
   statistics            TeacherStatistics?
   enokiAcct             EnokiAcct?
+  notificationLED       EnokiPhysicalLED?
 }
 
 model TeacherStatistics {

@@ -5,7 +5,7 @@ export default async function sendPushNotification(
   pushToken,
   title,
   body,
-  data = {}
+  type
 ) {
   if (!Expo.isExpoPushToken(pushToken)) {
     throw new Error(`Invalid Expo push token: ${pushToken}`);
@@ -15,8 +15,8 @@ export default async function sendPushNotification(
     sound: "default",
     title: title,
     body: body,
-    data: data,
-    channelId: "default",
+    data: {},
+    channelId: type,
   };
 
   try {

@@ -50,6 +50,8 @@ import getStudentCallHistory from "./endpoints/get-student-call-history.js";
 import notifyTeacher from "./endpoints/notify-teacher.js";
 import inSens from "./endpoints/in-sens.js";
 import outSens from "./endpoints/out-sens.js";
+import getEnokiLedSystem from "./endpoints/get-enokiLedSystem.js";
+import linkLedToTeacher from "./endpoints/link-led-to-teacher.js";
 
 const router = express.Router();
 
@@ -142,5 +144,8 @@ router.post("/notify-teacher", notifyTeacher);
 
 router.post("/in-sens", inSens);
 router.post("/out-sens", outSens);
+
+router.post("/get-enokiLedSystem", getEnokiLedSystem);
+router.post("/link-led-to-teacher", linkLedToTeacher);
 
 export default router;

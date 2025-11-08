@@ -12,6 +12,7 @@ export default function useEnokiMutator() {
           password,
         }
       );
+      console.log("Succes?");
       return response;
     },
   });

@@ -50,8 +50,8 @@ export default function TeacherConfirmModal({
             </div>
 
             <div className="mb-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div className="flex items-center gap-4 mb-4 ">
+                <div className="w-16 h-16 shrink-0 bg-gradient-to-br from-blue-600 to-blue-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
                   {confirmModalTeacher.name
                     .split(" ")
                     .map((n: string) => n[0])
