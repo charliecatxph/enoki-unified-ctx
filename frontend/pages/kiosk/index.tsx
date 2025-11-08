@@ -28,6 +28,7 @@ import { useEnokiMutator } from "@/hooks/useEnokiMutator";
 import { useRfidSocket } from "@/utils/useRfidSocket";
 import moment from "moment";
 import Head from "next/head";
+import { useKeyboard } from "@/contexts/KeyboardContext";
 
 const getStatusBackground = (status: string) => {
   switch (status) {
@@ -88,6 +89,8 @@ export async function getServerSideProps(ctx: GetServerSidePropsContext) {
 }
 
 export default function Kiosk({ user }: { user: any }) {
+  const { initKeyboard } = useKeyboard();
+
   const queryClient = useQueryClient();
   const { logout } = useEnokiMutator();
   const userData = useSelector(selectUserData);
@@ -321,6 +324,15 @@ export default function Kiosk({ user }: { user: any }) {
     });
   }, [teachersData, allTeachersData, searchQuery, departmentsData]);
 
+  const handleOpenKeyboard = async () => {
+    const value = await initKeyboard({
+      placeholder: "Search teachers...",
+      initialValue: searchQuery,
+    });
+
+    setSearchQuery(value);
+  };
+
   return (
     <>
       <Head>
@@ -354,7 +366,7 @@ export default function Kiosk({ user }: { user: any }) {
               type="text"
               placeholder="Search teachers..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => handleOpenKeyboard()}
               className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 hover:shadow-md"
             />
             {searchQuery && (

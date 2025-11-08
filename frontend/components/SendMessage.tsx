@@ -16,6 +16,7 @@ import { CircularProgress } from "@mui/material";
 import { useRfidSocket } from "@/utils/useRfidSocket";
 import axios from "axios";
 import { useEnokiMutator } from "@/hooks/useEnokiMutator";
+import { useKeyboard } from "@/contexts/KeyboardContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function SendMessage({
   institutionId: string;
   close: () => void;
 }) {
+  const { initKeyboard } = useKeyboard();
   const { sendMessage } = useEnokiMutator();
   const [localData, setLocalData] = useState({
     message: {
@@ -96,7 +98,6 @@ export default function SendMessage({
       setSendStatus("success");
       setStep(3);
     } catch (e) {
-      console.log("HEY");
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setSendStatus("error");
     }
@@ -138,6 +139,17 @@ export default function SendMessage({
 
     getStudentInformation();
   }, [rfidStat.detected, rfidStat.data.id]);
+
+  const handleOpenKeyboard = async () => {
+    const value = await initKeyboard({
+      placeholder: "Enter your message",
+      initialValue: localData.message.v,
+    });
+    setLocalData((pv) => ({
+      ...pv,
+      message: { ...pv.message, v: value },
+    }));
+  };
 
   return (
     <>
@@ -194,12 +206,7 @@ export default function SendMessage({
               </label>
               <textarea
                 value={localData.message.v}
-                onChange={(e) =>
-                  setLocalData({
-                    ...localData,
-                    message: { ...localData.message, v: e.target.value },
-                  })
-                }
+                onFocus={() => handleOpenKeyboard()}
                 placeholder="Type your message here..."
                 className="w-full h-40 px-4 py-3 border-2 border-blue-300 rounded-xl focus:outline-none focus:border-blue-700 focus:ring-4 focus:ring-blue-200 transition-all resize-none bg-white text-blue-900"
               />

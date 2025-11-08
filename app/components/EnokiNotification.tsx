@@ -23,6 +23,13 @@ async function registerForPushNotificationsAsync() {
       vibrationPattern: [0, 250, 250, 250],
       lightColor: "#FF231F7C",
     });
+
+    await Notifications.setNotificationChannelAsync("notification", {
+      name: "notification",
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 1000, 250, 1000],
+      lightColor: "#FF231F7C",
+    });
   }
 
   if (Device.isDevice) {

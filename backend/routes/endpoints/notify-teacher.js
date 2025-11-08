@@ -1,4 +1,7 @@
+import { socketsConnected } from "../../index.js";
+import sendPushNotification from "../../lib/expoSend.js";
 import { prisma } from "../../lib/prisma.js";
+import { emitToAll, emitToSocket } from "../../lib/socket.js";
 
 export default async function notifyTeacher(req, res) {
   const { studentId, recipientId } = req.body;
@@ -16,6 +19,7 @@ export default async function notifyTeacher(req, res) {
       },
       include: {
         enokiAcct: true,
+        course: true,
       },
     });
 
@@ -55,6 +59,22 @@ export default async function notifyTeacher(req, res) {
         lastCall: new Date(),
       },
     });
+
+    const socketId = socketsConnected.get(teacher.enokiAcct.id);
+    if (socketId) {
+      emitToSocket(socketId, "sig", { type: "MESSAGE-SENT" });
+    }
+    emitToAll("sig", { type: "DSH-MESSAGE" });
+
+    if (teacher.pushNotificationToken) {
+      await sendPushNotification(
+        teacher.pushNotificationToken,
+        `Notification Alert`,
+        `${student.enokiAcct.name} waiting outside`,
+        "notification"
+      );
+    }
+
     return res.status(200).json({ success: true });
   } catch (e) {
     return res.status(500).json({ success: false, error: "SERVER_ERROR" });
