@@ -193,7 +193,7 @@ export default function EnokiLEDSystemDetails({
                         }}
                       />
                       <span className="text-sm font-medium text-slate-900">
-                        LED #{led.idx}
+                        LED #{led.idx + 1}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
