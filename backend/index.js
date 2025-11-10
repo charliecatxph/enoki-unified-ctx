@@ -122,23 +122,6 @@ initSocket(io);
 
 export const socketsConnected = new Map();
 
-// prisma.enokiPhysicalLED
-//   .update({
-//     where: {
-//       ledUq: "f23c991d",
-//     },
-//     data: {
-//       teacher: {
-//         connect: {
-//           id: "0003796e-d925-453b-a711-8cd19f1ed56f",
-//         },
-//       },
-//     },
-//   })
-//   .then(() => {
-//     console.log("Connection success.");
-//   }); temporary injection
-
 io.on("connection", (socket) => {
   if (socket.handshake.auth?.id) {
     socketsConnected.set(socket.handshake.auth.id, socket.id);
