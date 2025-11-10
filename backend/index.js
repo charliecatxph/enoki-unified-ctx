@@ -150,7 +150,7 @@ io.on("connection", (socket) => {
 
 const native__wss = new WebSocketServer({ noServer: true });
 
-export let espSocket = null;
+export let enokiLedSystems = new Map();
 const firstSetupEnokiLedSystem = async (dx) => {
   const ledSystem = await prisma.enokiLEDSystem.findUnique({
     where: {
@@ -173,11 +173,22 @@ const firstSetupEnokiLedSystem = async (dx) => {
     return;
   }
 
+  const institution = await prisma.institution.findUnique({
+    where: {
+      id: dx.institutionId,
+    },
+  });
+
+  if (!institution) {
+    console.log("Institution not found!", dx.institutionId);
+    throw new Error("Institution not found!");
+  }
+
   await prisma.enokiLEDSystem.create({
     data: {
       deviceSID: dx.deviceSID,
       name: dx.name,
-      institutionId: dx.institutionId,
+      institutionId: institution.id,
       physicalLeds: {
         createMany: {
           data: dx.ledArray.map((led) => ({
@@ -195,15 +206,22 @@ const firstSetupEnokiLedSystem = async (dx) => {
 };
 
 native__wss.on("connection", (ws) => {
-  espSocket = ws;
   console.log("ESP connected via native WebSocket");
 
+  let deviceSID = null;
   ws.on("message", async (msg) => {
     try {
       const data = JSON.parse(msg);
       switch (data.type) {
         case "init":
-          await firstSetupEnokiLedSystem(data).catch((e) => console.error(e));
+          await firstSetupEnokiLedSystem(data)
+            .catch((e) => {
+              ws.terminate();
+            })
+            .then((d) => {
+              deviceSID = data.deviceSID;
+              enokiLedSystems.set(deviceSID, ws);
+            });
           break;
       }
     } catch (err) {
@@ -211,9 +229,9 @@ native__wss.on("connection", (ws) => {
     }
   });
 
-  native__wss.on("close", () => {
+  ws.on("close", () => {
     console.log("ESP disconnected");
-    espSocket = null;
+    enokiLedSystems.delete(deviceSID);
   });
 });
 
