@@ -214,11 +214,14 @@ native__wss.on("connection", (ws) => {
       const data = JSON.parse(msg);
       switch (data.type) {
         case "init":
-          await firstSetupEnokiLedSystem(data).catch((e) => {
-            ws.terminate();
-          });
-          deviceSID = data.deviceSID;
-          enokiLedSystems.set(deviceSID, ws);
+          await firstSetupEnokiLedSystem(data)
+            .catch((e) => {
+              ws.terminate();
+            })
+            .then((d) => {
+              deviceSID = data.deviceSID;
+              enokiLedSystems.set(deviceSID, ws);
+            });
           break;
       }
     } catch (err) {
