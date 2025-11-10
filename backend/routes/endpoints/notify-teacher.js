@@ -1,4 +1,4 @@
-import { espSocket, socketsConnected } from "../../index.js";
+import { enokiLedSystems, socketsConnected } from "../../index.js";
 import sendPushNotification from "../../lib/expoSend.js";
 import { prisma } from "../../lib/prisma.js";
 import { emitToAll, emitToSocket } from "../../lib/socket.js";
@@ -70,14 +70,11 @@ export default async function notifyTeacher(req, res) {
       emitToSocket(socketId, "sig", { type: "MESSAGE-SENT" });
     }
     emitToAll("sig", { type: "DSH-MESSAGE" });
-
-    console.log(teacher.pushNotificationToken);
-
     if (teacher.pushNotificationToken) {
       await sendPushNotification(
         teacher.pushNotificationToken,
         `Notification Alert`,
-        `${student.enokiAcct.name} waiting outside`,
+        `${student.enokiAcct.name} is waiting outside`,
         "notification"
       );
     }
@@ -96,12 +93,14 @@ export default async function notifyTeacher(req, res) {
         },
       });
       console.log("LED Turned on");
-      espSocket.send(
-        JSON.stringify({
-          type: "update",
-          state: newLEDSystemState,
-        })
-      );
+      enokiLedSystems
+        .get(teacher.notificationLED.enokiLEDSystem.deviceSID)
+        .send(
+          JSON.stringify({
+            type: "update",
+            state: newLEDSystemState,
+          })
+        );
       console.log("Turning off LED");
       setTimeout(async () => {
         const val = await prisma.enokiLEDSystem.findUnique({
@@ -125,13 +124,15 @@ export default async function notifyTeacher(req, res) {
           },
         });
         console.log("LED Turned off");
-        espSocket.send(
-          JSON.stringify({
-            type: "update",
-            state: disablingState,
-          })
-        );
-      }, 8000);
+        enokiLedSystems
+          .get(teacher.notificationLED.enokiLEDSystem.deviceSID)
+          .send(
+            JSON.stringify({
+              type: "update",
+              state: disablingState,
+            })
+          );
+      }, parseInt(process.env.ENOKI_LED_SYSTEM_TIMEOUT));
     }
 
     return res.status(200).json({ success: true });

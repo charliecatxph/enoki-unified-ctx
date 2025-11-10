@@ -150,7 +150,7 @@ io.on("connection", (socket) => {
 
 const native__wss = new WebSocketServer({ noServer: true });
 
-export let espSocket = null;
+export let enokiLedSystems = new Map();
 const firstSetupEnokiLedSystem = async (dx) => {
   const ledSystem = await prisma.enokiLEDSystem.findUnique({
     where: {
@@ -206,17 +206,19 @@ const firstSetupEnokiLedSystem = async (dx) => {
 };
 
 native__wss.on("connection", (ws) => {
-  espSocket = ws;
   console.log("ESP connected via native WebSocket");
 
+  let deviceSID = null;
   ws.on("message", async (msg) => {
     try {
       const data = JSON.parse(msg);
       switch (data.type) {
         case "init":
           await firstSetupEnokiLedSystem(data).catch((e) => {
-            ws.close();
+            ws.terminate();
           });
+          deviceSID = data.deviceSID;
+          enokiLedSystems.set(deviceSID, ws);
           break;
       }
     } catch (err) {
@@ -224,9 +226,9 @@ native__wss.on("connection", (ws) => {
     }
   });
 
-  native__wss.on("close", () => {
+  ws.on("close", () => {
     console.log("ESP disconnected");
-    espSocket = null;
+    enokiLedSystems.delete(deviceSID);
   });
 });
 
