@@ -237,6 +237,7 @@ export default function Dashboard() {
     enabled: !!userId,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 
   useEffect(() => {
