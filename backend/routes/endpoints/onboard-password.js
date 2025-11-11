@@ -2,18 +2,18 @@ import { prisma } from "../../lib/prisma.js";
 import bcrypt from "bcrypt";
 
 export default async function onboardPassword(req, res) {
-  const { userId, password } = req.body;
+  const { teacherId, password } = req.body;
 
-  if (!password || !userId) {
+  if (!password || !teacherId) {
     return res.status(400).json({
       code: "PARAMETERS_INCOMPLETE",
     });
   }
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.enokiAcct.findUnique({
       where: {
-        id: userId,
+        id: teacherId,
       },
     });
 
@@ -22,12 +22,13 @@ export default async function onboardPassword(req, res) {
         code: "USER_NOT_FOUND",
       });
     }
+    console.log("password hashed. onboarded");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await prisma.user.update({
+    await prisma.enokiAcct.update({
       where: {
-        id: userId,
+        id: teacherId,
       },
       data: {
         password: hashedPassword,

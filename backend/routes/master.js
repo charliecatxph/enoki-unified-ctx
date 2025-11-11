@@ -149,6 +149,6 @@ router.post("/out-sens", outSens);
 router.post("/get-enokiLedSystem", getEnokiLedSystem);
 router.post("/link-led-to-teacher", linkLedToTeacher);
 
-router.post("/onboard-password", onboardPassword);
+router.post("/onboarding-password", onboardPassword);
 
 export default router;
