@@ -1,4 +1,6 @@
+import { useAuth } from "@/components/AuthContext";
 import useEnokiAuthenticationPlatform from "@/hooks/useEnokiAuthenticationPlatform";
+import useEnokiMutator from "@/hooks/useEnokiMutator";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
@@ -12,6 +14,8 @@ import {
 } from "react-native";
 
 export default function WelcomeAboard() {
+  const { onboardingPassword } = useEnokiMutator();
+  const { userId } = useAuth();
   const { saveSecure } = useEnokiAuthenticationPlatform();
   const expoRouter = useRouter();
   const [password, setPassword] = useState({
@@ -63,13 +67,15 @@ export default function WelcomeAboard() {
     try {
       setIsSettingUp(true);
 
-      // TODO: Implement password setup API call
-      // For now, just simulate the process
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await onboardingPassword.mutateAsync({
+        teacherId: userId,
+        password: password.v,
+      });
 
       // Navigate to login or dashboard after successful setup
       expoRouter.replace("/login");
     } catch (error: any) {
+      console.log(error);
       setPassword((pv) => ({
         ...pv,
         e: "Failed to set up password. Please try again.",
@@ -181,7 +187,7 @@ export default function WelcomeAboard() {
               </View>
             ) : (
               <Text className="text-white text-center font-poppins-semibold text-base">
-                Save and Log Me In
+                Save Password
               </Text>
             )}
           </Pressable>

@@ -115,6 +115,25 @@ export default function useEnokiMutator() {
     },
   });
 
+  const onboardingPassword = useMutation({
+    mutationFn: ({
+      teacherId,
+      password,
+    }: {
+      teacherId: string;
+      password: string;
+    }) => {
+      const response = axios.post(
+        `${process.env.EXPO_PUBLIC_API_URL}/onboarding-password`,
+        {
+          teacherId,
+          password,
+        }
+      );
+      return response;
+    },
+  });
+
   return {
     login,
     changeStatus,
@@ -122,5 +141,6 @@ export default function useEnokiMutator() {
     deleteMessage,
     appendPushNotificationToken,
     appLogout,
+    onboardingPassword,
   };
 }

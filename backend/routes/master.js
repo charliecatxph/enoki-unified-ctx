@@ -52,6 +52,7 @@ import inSens from "./endpoints/in-sens.js";
 import outSens from "./endpoints/out-sens.js";
 import getEnokiLedSystem from "./endpoints/get-enokiLedSystem.js";
 import linkLedToTeacher from "./endpoints/link-led-to-teacher.js";
+import onboardPassword from "./endpoints/onboard-password.js";
 
 const router = express.Router();
 
@@ -147,5 +148,7 @@ router.post("/out-sens", outSens);
 
 router.post("/get-enokiLedSystem", getEnokiLedSystem);
 router.post("/link-led-to-teacher", linkLedToTeacher);
+
+router.post("/onboarding-password", onboardPassword);
 
 export default router;
