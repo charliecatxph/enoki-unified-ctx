@@ -171,7 +171,7 @@ export default function Kiosk({ user }: { user: any }) {
   // Query for all teachers (for search functionality)
   const {
     data: allTeachersData = [],
-    isFetching: allTeachersFetching,
+    isPending: allTeachersPending,
     isError: allTeachersError,
     refetch: allTeachersRefetch,
   } = useQuery({
@@ -197,7 +197,7 @@ export default function Kiosk({ user }: { user: any }) {
   // Query for department-specific teachers
   const {
     data: teachersData = [],
-    isFetching: teachersFetching,
+    isPending: teachersPending,
     isError: teachersError,
     refetch: teacherRefetch,
   } = useQuery({
@@ -411,7 +411,7 @@ export default function Kiosk({ user }: { user: any }) {
                 </p>
               </div>
             </div>
-          ) : (searchQuery.trim() ? allTeachersFetching : teachersFetching) ? (
+          ) : (searchQuery.trim() ? allTeachersPending : teachersPending) ? (
             <div className="flex items-center justify-center h-full text-yellow-300">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-yellow-300 mx-auto mb-4"></div>
