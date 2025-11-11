@@ -2,7 +2,13 @@
 import useEnokiMutator from "@/hooks/useEnokiMutator";
 import { useRouter } from "expo-router";
 import { jwtDecode } from "jwt-decode";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { ActivityIndicator, View } from "react-native";
 import useEnokiAuthenticationPlatform from "../hooks/useEnokiAuthenticationPlatform";
 
@@ -17,7 +23,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType>();
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const expoRouter = useRouter();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const { login, appLogout } = useEnokiMutator();

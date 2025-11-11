@@ -1,4 +1,5 @@
 import { useAuth } from "@/components/AuthContext";
+import { useLoader } from "@/components/UseLoaderContext";
 import useEnokiMutator from "@/hooks/useEnokiMutator";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -42,6 +43,7 @@ const getTimeBasedGreeting = () => {
 };
 
 export default function Dashboard() {
+  const { show: showLoader, hide: hideLoader } = useLoader();
   const { changeStatus } = useEnokiMutator();
 
   const opacity = useSharedValue(0); // start invisible
@@ -117,6 +119,7 @@ export default function Dashboard() {
     const newStat = statusOptions.find((s) => s.label === pendingStatus)?.vt;
 
     try {
+      showLoader();
       await changeStatus.mutateAsync({
         id: userData.teacherId,
         newStatus: newStat!,
@@ -124,6 +127,8 @@ export default function Dashboard() {
       });
     } catch (e) {
       console.log(e);
+    } finally {
+      hideLoader();
     }
 
     setShowComebackModal(false);
@@ -159,12 +164,15 @@ export default function Dashboard() {
     }
 
     try {
+      showLoader();
       await changeStatus.mutateAsync({
         id: userData.teacherId,
         newStatus: newStat!,
       });
     } catch (e) {
       console.log(e);
+    } finally {
+      hideLoader();
     }
 
     setShowStatusMenu(false);

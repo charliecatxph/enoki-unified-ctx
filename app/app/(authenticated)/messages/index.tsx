@@ -1,10 +1,17 @@
 import { useAuth } from "@/components/AuthContext";
+import { useLoader } from "@/components/UseLoaderContext";
 import useEnokiMutator from "@/hooks/useEnokiMutator";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useNavigation } from "expo-router";
-import React, { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 interface Message {
   message: string;
@@ -22,6 +29,7 @@ interface MessageGroup {
 }
 
 export default function Messages() {
+  const { show: showLoader, hide: hideLoader } = useLoader();
   const navi = useNavigation();
   const { currentUser } = useAuth();
   const { markAsRead, deleteMessage } = useEnokiMutator();
@@ -50,8 +58,10 @@ export default function Messages() {
 
   const handleLongPress = async (messageId: string) => {
     try {
+      showLoader();
       await markAsRead.mutateAsync({ messageId });
       console.log(`Message ${messageId} marked as read successfully`);
+      hideLoader();
     } catch (error) {
       console.error(`Failed to mark message ${messageId} as read:`, error);
     }
@@ -65,8 +75,10 @@ export default function Messages() {
   const confirmDeleteMessage = async () => {
     if (messageToDelete) {
       try {
+        showLoader();
         await deleteMessage.mutateAsync({ messageId: messageToDelete });
         console.log(`Message ${messageToDelete} deleted successfully`);
+        hideLoader();
       } catch (error) {
         console.error(`Failed to delete message ${messageToDelete}:`, error);
       }
@@ -110,10 +122,6 @@ export default function Messages() {
     0
   );
 
-  useEffect(() => {
-    console.log(messagesData);
-  }, [messagesData]);
-
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
@@ -153,38 +161,42 @@ export default function Messages() {
         showsVerticalScrollIndicator={false}
       >
         {/* Messages Overview */}
-        <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50 mb-5">
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-gray-500 font-poppins text-sm mb-1">
-                Total Messages
-              </Text>
-              <Text className="text-gray-900 font-poppins-semibold text-xl">
-                {messagesData.length}
-              </Text>
-            </View>
-            <View className="flex-row items-center gap-4">
-              <View className="items-center">
-                <Text className="text-red-600 font-poppins-semibold text-lg">
-                  {unreadCount}
+        {!messagesPending && (
+          <View className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50 mb-5">
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Text className="text-gray-500 font-poppins text-sm mb-1">
+                  Total Messages
                 </Text>
-                <Text className="text-gray-500 font-poppins text-xs">
-                  Unread
+                <Text className="text-gray-900 font-poppins-semibold text-xl">
+                  {messagesData.length}
                 </Text>
               </View>
-              <View className="items-center">
-                <Text className="text-emerald-600 font-poppins-semibold text-lg">
-                  {messagesData.reduce(
-                    (total: number, group: MessageGroup) =>
-                      total + group.messages.length,
-                    0
-                  ) - unreadCount}
-                </Text>
-                <Text className="text-gray-500 font-poppins text-xs">Read</Text>
+              <View className="flex-row items-center gap-4">
+                <View className="items-center">
+                  <Text className="text-red-600 font-poppins-semibold text-lg">
+                    {unreadCount}
+                  </Text>
+                  <Text className="text-gray-500 font-poppins text-xs">
+                    Unread
+                  </Text>
+                </View>
+                <View className="items-center">
+                  <Text className="text-emerald-600 font-poppins-semibold text-lg">
+                    {messagesData.reduce(
+                      (total: number, group: MessageGroup) =>
+                        total + group.messages.length,
+                      0
+                    ) - unreadCount}
+                  </Text>
+                  <Text className="text-gray-500 font-poppins text-xs">
+                    Read
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
-        </View>
+        )}
 
         {/* Messages List */}
         <View className="mb-6">
@@ -192,8 +204,14 @@ export default function Messages() {
             Recent Messages
           </Text>
 
-          {messagesData.length === 0 ? (
-            /* Empty State */
+          {messagesPending && (
+            <View className="flex flex-row gap-5 mx-auto font-poppins-semibold">
+              <ActivityIndicator color="black" />{" "}
+              <Text className="font-[500]">Fetching messages...</Text>
+            </View>
+          )}
+
+          {!messagesPending && messagesData.length === 0 && (
             <View className="bg-white rounded-2xl p-8 shadow-sm border border-gray-50 items-center">
               <View className="w-20 h-20 bg-blue-50 rounded-full items-center justify-center mb-4">
                 <Text className="text-blue-500 text-3xl">📬</Text>
@@ -216,7 +234,9 @@ export default function Messages() {
                 </Text>
               </View>
             </View>
-          ) : (
+          )}
+
+          {!messagesPending && messagesData.length > 0 && (
             <View className="flex flex-col gap-3">
               {messagesData.map((messageGroup: MessageGroup) => {
                 const hasUnreadMessages = messageGroup.messages.some(
@@ -351,7 +371,7 @@ export default function Messages() {
       {deleteModalVisible && (
         <View className="absolute inset-0 bg-black/50 justify-center items-center px-6">
           <View className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <Text className="text-gray-900 font-poppins-bold text-xl mb-2 text-center">
+            <Text className="text-gray-900 font-poppins-semibold text-xl mb-2 text-center">
               Delete Message
             </Text>
             <Text className="text-gray-600 font-poppins text-sm mb-6 text-center leading-5">
