@@ -5,7 +5,7 @@
 #include <ArduinoJson.h>
 using namespace websockets;
 
-#define LED_PIN 2   // onboard LED
+#define LED_PIN 2  // onboard LED
 #define WIFI_FILE "/wifi.json"
 #define AP_SSID "E-Noki LED-Scanner"
 #define AP_PASSWORD ""  // open AP
@@ -16,31 +16,31 @@ using namespace websockets;
 #define LATCH_PIN 15
 
 // LED bit positions
-#define LED_RED     0
-#define LED_GREEN   1
-#define LED_BLUE    2
-#define LED_YELLOW  3
-#define LED_WHITE   4
+#define LED_RED 0
+#define LED_GREEN 1
+#define LED_BLUE 2
+#define LED_YELLOW 3
+#define LED_WHITE 4
 
 byte ledState = 0b00000000;
 
 // === Device Info ===
-const char* enokiLED  = "ENOKI-5-PORT-SCANNER-rev0.10beta";
-const char* enokiUniq = "e75f428a-0fb1-40e9-bd88-15c4313ed23e";
-const char* enokiInst = "898b4819-1877-41b4-aae4-d16f571ddb3b";
+const char *enokiLED = "ENOKI-5-PORT-SCANNER-rev0.10beta";
+const char *enokiUniq = "e75f428a-0fb1-40e9-bd88-15c4313ed23e";
+const char *enokiInst = "898b4819-1877-41b4-aae4-d16f571ddb3b";
 
 struct LedInf {
   int addr;
-  const char* uq;
-  const char* color;
+  const char *uq;
+  const char *color;
 };
 
 LedInf ledList[] = {
-  {LED_RED, "f23c991d", "red"},
-  {LED_GREEN, "a3337cd6", "green"},
-  {LED_BLUE, "56c10d14", "blue"},
-  {LED_YELLOW, "459a6ad0", "yellow"},
-  {LED_WHITE, "635ee1a3", "white"}
+  { LED_RED, "f23c991d", "red" },
+  { LED_GREEN, "a3337cd6", "green" },
+  { LED_BLUE, "56c10d14", "blue" },
+  { LED_YELLOW, "459a6ad0", "yellow" },
+  { LED_WHITE, "635ee1a3", "white" }
 };
 
 // === Globals ===
@@ -110,20 +110,20 @@ bool readCredentials(String &ssid, String &pass) {
   File f = SPIFFS.open(WIFI_FILE, "r");
   String content = f.readString();
   f.close();
-  int s1 = content.indexOf("\"ssid\":\""), s2 = content.indexOf("\"", s1+8);
-  int p1 = content.indexOf("\"pass\":\""), p2 = content.indexOf("\"", p1+8);
-  if (s1==-1||s2==-1) return false;
-  ssid = content.substring(s1+8, s2);
-  pass = (p1!=-1&&p2!=-1)? content.substring(p1+8,p2):"";
+  int s1 = content.indexOf("\"ssid\":\""), s2 = content.indexOf("\"", s1 + 8);
+  int p1 = content.indexOf("\"pass\":\""), p2 = content.indexOf("\"", p1 + 8);
+  if (s1 == -1 || s2 == -1) return false;
+  ssid = content.substring(s1 + 8, s2);
+  pass = (p1 != -1 && p2 != -1) ? content.substring(p1 + 8, p2) : "";
   return true;
 }
 
-bool tryConnect(const String &ssid, const String &pass, uint32_t timeoutSec=15) {
+bool tryConnect(const String &ssid, const String &pass, uint32_t timeoutSec = 15) {
   Serial.printf("Connecting to '%s'...\n", ssid.c_str());
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid.c_str(), pass.c_str());
   uint32_t start = millis();
-  while (millis() - start < timeoutSec*1000) {
+  while (millis() - start < timeoutSec * 1000) {
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println("✅ Wi-Fi connected");
       Serial.println(WiFi.localIP());
@@ -137,16 +137,24 @@ bool tryConnect(const String &ssid, const String &pass, uint32_t timeoutSec=15) 
 }
 
 // -------------------- Web Handlers --------------------
-void handleRoot() { server.send(200, "text/html", indexPage); }
+void handleRoot() {
+  server.send(200, "text/html", indexPage);
+}
 
 void handleSave() {
   String body = server.arg("plain");
-  int s1 = body.indexOf("\"ssid\":\""), s2 = body.indexOf("\"", s1+8);
-  int p1 = body.indexOf("\"pass\":\""), p2 = body.indexOf("\"", p1+8);
-  if (s1==-1 || s2==-1) { server.send(400,"text/plain","Bad JSON"); return; }
-  String ssid = body.substring(s1+8,s2);
-  String pass = (p1!=-1&&p2!=-1)? body.substring(p1+8,p2):"";
-  if (!saveCredentials(ssid, pass)) { server.send(500,"text/plain","Failed to save"); return; }
+  int s1 = body.indexOf("\"ssid\":\""), s2 = body.indexOf("\"", s1 + 8);
+  int p1 = body.indexOf("\"pass\":\""), p2 = body.indexOf("\"", p1 + 8);
+  if (s1 == -1 || s2 == -1) {
+    server.send(400, "text/plain", "Bad JSON");
+    return;
+  }
+  String ssid = body.substring(s1 + 8, s2);
+  String pass = (p1 != -1 && p2 != -1) ? body.substring(p1 + 8, p2) : "";
+  if (!saveCredentials(ssid, pass)) {
+    server.send(500, "text/plain", "Failed to save");
+    return;
+  }
   server.send(200, "text/plain", "Saved");
   delay(1000);
   ESP.restart();
@@ -154,12 +162,14 @@ void handleSave() {
 
 // -------------------- WebSocket Setup --------------------
 void setupWebSocket() {
-  ws.setInsecure(); 
+  ws.setInsecure();
   Serial.println("\nConnecting to WebSocket...");
-   while (!ws.connect(wsUrl)) {
+
+  while (!ws.connect(wsUrl)) {
     Serial.println("❌ WebSocket connection failed. Retrying in 3 seconds...");
-    delay(3000); // wait before retrying
+    delay(3000);
   }
+
   Serial.println("✅ WebSocket connected.");
   wsConnected = true;
   digitalWrite(LED_PIN, LOW);  // LED ON when WS connected (active low)
@@ -184,6 +194,13 @@ void setupWebSocket() {
       String out;
       serializeJson(ack, out);
       ws.send(out);
+    }
+  });
+
+  ws.onEvent([](WebsocketsEvent event, String data) {
+    if (event == WebsocketsEvent::ConnectionClosed) {
+      wsConnected = false;
+      Serial.println("❌ WebSocket connection closed.");
     }
   });
 
@@ -217,7 +234,7 @@ void setup() {
   pinMode(CLOCK_PIN, OUTPUT);
   pinMode(LATCH_PIN, OUTPUT);
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH); // LED off (active low)
+  digitalWrite(LED_PIN, HIGH);  // LED off (active low)
 
   if (!SPIFFS.begin()) SPIFFS.format();
 
@@ -239,18 +256,36 @@ void setup() {
   updateShiftRegister();
 }
 
+const unsigned long POLL_INTERVAL = 10000;
+unsigned long lastPollTime = 0;
+
 // -------------------- LOOP --------------------
 void loop() {
   if (isProvisioning) {
     server.handleClient();
-  } else {
-    ws.poll();
-    if (ws.available() == false && wsConnected) {
+    return;
+  }
+
+  ws.poll();  // keep WebSocket alive
+  unsigned long currentTime = millis();
+
+  // send poll message periodically
+  if (currentTime - lastPollTime >= POLL_INTERVAL) {
+    if (ws.available()) {
+      ws.send("POLL");
+      Serial.println("🔁 Sent POLL");
+    }
+    lastPollTime = currentTime;
+  }
+
+  // reconnect only if WebSocket closed
+  if (!ws.available() && !isProvisioning) {
+    if (wsConnected) {
       wsConnected = false;
-      digitalWrite(LED_PIN, HIGH); // LED off if WS lost
-      Serial.println("⚠️ WebSocket disconnected!");
+      digitalWrite(LED_PIN, HIGH);  // LED off if WS lost
+      Serial.println("⚠️ WebSocket disconnected, retrying...");
       delay(2000);
-      setupWebSocket(); // auto-retry
+      setupWebSocket();
     }
   }
 }
