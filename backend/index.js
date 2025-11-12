@@ -195,7 +195,7 @@ native__wss.on("connection", (ws) => {
   ws.on("message", async (msg) => {
     try {
       const data = JSON.parse(msg);
-      switch (data.type) {
+      switch (data?.type) {
         case "init":
           await firstSetupEnokiLedSystem(data)
             .catch((e) => {
