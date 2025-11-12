@@ -245,7 +245,12 @@ void loop() {
     server.handleClient();
   } else {
     ws.poll();
-    if (ws.available() == false && wsConnected) {
+    if (ws.available()) {
+      ws.send("POLL");
+      return;
+    }
+
+    if (wsConnected) {
       wsConnected = false;
       digitalWrite(LED_PIN, HIGH); // LED off if WS lost
       Serial.println("⚠️ WebSocket disconnected!");
