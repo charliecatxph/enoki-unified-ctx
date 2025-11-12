@@ -1,3 +1,5 @@
+import { prisma } from "../../lib/prisma.js";
+
 export default async function linkLedToTeacher(req, res) {
   const { ledUq, teacherId } = req.body;
 
@@ -32,12 +34,29 @@ export default async function linkLedToTeacher(req, res) {
       });
     }
 
-    await prisma.enokiPhysicalLED.update({
+    if (checkTeacher.notificationLED) {
+      await prisma.teacher.update({
+        where: {
+          id: teacherId,
+        },
+        data: {
+          notificationLED: {
+            disconnect: true,
+          },
+        },
+      });
+    }
+
+    await prisma.teacher.update({
       where: {
-        ledUq,
+        id: teacherId,
       },
       data: {
-        teacherId,
+        notificationLED: {
+          connect: {
+            ledUq,
+          },
+        },
       },
     });
 
