@@ -32,6 +32,13 @@ export default function HeroButtons() {
     // Handle APK download logic here
     console.log(`Downloading ${buildType} APK`);
     setIsApkDropdownOpen(false);
+
+    const link = document.createElement("a");
+    link.href = "/E-Noki.apk";
+    link.download = "E-Noki.apk"; // optional, rename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
   return (
     <div className="flex items-center justify-center space-x-6 mt-12">
