@@ -92,16 +92,7 @@ export default function Navbar() {
                 View Paper
               </span>
             </button>
-            <a
-              href="https://github.com/Apollo1521/-enoki-unified/tree/main"
-              target="_blank"
-            >
-              <button className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg transition-colors duration-200 text-sm">
-                <span className={`${inter.className} font-[700]`}>
-                  View Git History
-                </span>
-              </button>
-            </a>
+
             {/* APK Download Dropdown */}
             <div className="relative" ref={apkDropdownRef}>
               <button

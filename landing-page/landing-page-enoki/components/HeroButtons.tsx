@@ -191,56 +191,6 @@ export default function HeroButtons() {
           </div>
         )}
       </div>
-
-      {/* View Git History Button */}
-      <a
-        href="https://github.com/Apollo1521/-enoki-unified/tree/main"
-        target="_blank"
-      >
-        <button className="flex items-center space-x-3 px-8 py-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl font-mono text-lg">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            className="text-white"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="3"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-            <path
-              d="M12 1V9"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M21 12H15"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M12 15V23"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-            <path
-              d="M9 12H3"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className={`${inter.className} font-[700]`}>Git History</span>
-        </button>
-      </a>
     </div>
   );
 }
