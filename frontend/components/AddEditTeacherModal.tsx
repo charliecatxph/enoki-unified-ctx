@@ -426,6 +426,11 @@ export default function AddEditTeacherModal({
     const ok1 = await validateStepZero();
     if (!ok1) return;
 
+    if (isEditing) {
+      // refeed data if exited
+      feedScheduleData(feed?.schedule);
+    }
+
     setStep(1);
   };
 
