@@ -1,4 +1,3 @@
-import PixelBlast from "@/components/PixelBlast";
 import Navbar from "@/components/Navbar";
 import HeroButtons from "@/components/HeroButtons";
 import { Inter } from "next/font/google";
