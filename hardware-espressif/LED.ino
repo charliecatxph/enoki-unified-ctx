@@ -37,10 +37,10 @@ struct LedInf {
 
 LedInf ledList[] = {
   { LED_RED, "f23c991d", "red" },
-  { LED_GREEN, "a3337cd6", "green" },
-  { LED_BLUE, "56c10d14", "blue" },
+  { LED_GREEN, "a3337cd6", "red" },
+  { LED_BLUE, "56c10d14", "yellow" },
   { LED_YELLOW, "459a6ad0", "yellow" },
-  { LED_WHITE, "635ee1a3", "white" }
+  { LED_WHITE, "635ee1a3", "blue" }
 };
 
 // === Globals ===
