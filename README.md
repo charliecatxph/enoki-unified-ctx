@@ -205,7 +205,7 @@ Chromium will automatically redirect to kiosk UI once backend becomes active.
 
 # ⚙️ Bare Minimum NGINX Configuration
 
-**Includes: `/`, `/api`, `/socket.io`, `/esp` with upgrade logic.**
+**Includes: `/`, `/api`, `/socket.io`, `/esp` with HTTP -> TCP Upgrade logic.**
 
 # ⚙️ Network Topology
 
